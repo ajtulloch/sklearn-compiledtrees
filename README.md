@@ -4,15 +4,7 @@ In some use cases, predicting given a model is in the hot-path, so speeding up d
 
 An effective way of speeding up evaluation of decision trees can be to generate code representing the evaluation of the tree, compile that to optimized object code, and dynamically load that file via dlopen/dlsym or equivalent.
 
-See
-
-<https://courses.cs.washington.edu/courses/cse501/10au/compile-machlearn.pdf>
-
-for a detailed discussion, and
-
-<http://tullo.ch/articles/decision-tree-evaluation/>
-
-for some benchmarks with C++.
+See <https://courses.cs.washington.edu/courses/cse501/10au/compile-machlearn.pdf> for a detailed discussion, and <http://tullo.ch/articles/decision-tree-evaluation/> for a more pedagogical explanation and more benchmarks in C++.
 
 It's fairly trivial to implement this for regression trees due to the
 simpler `predict()` method, but in theory is possible do to it for
@@ -28,16 +20,14 @@ work on Linux (change the CXX compiler invocation flags), and Windows
 For random forests, we see 5x to 8x speedup in evaluation. For
 gradient boosted ensembles, it's between a 1.5x and 3x speedup in
 evaluation. This is due to the fact that gradient boosted trees
-already have an optimised prediction implementation.
+already have an optimized prediction implementation.
 
 There is a benchmark script attached that allows us to examine the
 performance of evaluation across a range of ensemble configurations
 and datasets.
 
-In the graphs attached, GB is "Gradient Boosted", RF is "Random
-Forest",
-"D1", "D3" is "max-depth=1", "max-depth=3", and "B10" is
-"max_leaf_nodes=10".
+In the graphs attached, `GB` is Gradient Boosted, `RF` is Random
+Forest, `D1`, etc correspond to setting `max-depth=1`, and `B10` corresponds to setting `max_leaf_nodes=10`.
 
 ## Graphs
 
