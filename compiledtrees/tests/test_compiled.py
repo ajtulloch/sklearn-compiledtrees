@@ -1,4 +1,5 @@
 from sklearn import ensemble, tree
+from ..compiled import CompiledRegressionPredictor
 from sklearn.utils.testing import \
     assert_array_almost_equal, assert_raises, assert_equal
 import numpy as np
@@ -19,19 +20,19 @@ CLASSIFIERS = {
 def assert_equal_predictions(cls, X, y):
     clf = cls()
     clf.fit(X, y)
-    compiled = tree.CompiledRegressionPredictor(clf)
+    compiled = CompiledRegressionPredictor(clf)
     assert_array_almost_equal(clf.predict(X), compiled.predict(X))
 
 
 def test_rejects_unfitted_regressors_as_compilable():
     for cls in REGRESSORS:
-        assert_equal(tree.CompiledRegressionPredictor.compilable(cls()), False)
+        assert_equal(CompiledRegressionPredictor.compilable(cls()), False)
         assert_raises(ValueError, tree.CompiledRegressionPredictor, cls())
 
 
 def test_rejects_classifiers_as_compilable():
     for cls in CLASSIFIERS:
-        assert_equal(tree.CompiledRegressionPredictor.compilable(cls()), False)
+        assert_equal(CompiledRegressionPredictor.compilable(cls()), False)
         assert_raises(ValueError, tree.CompiledRegressionPredictor, cls())
 
 
