@@ -2,6 +2,14 @@ from numpy.distutils.core import setup
 from numpy.distutils.misc_util import Configuration
 import os
 
+
+def readme():
+    try:
+        import pypandoc
+        return pypandoc.convert('README.md', 'rst')
+    except (IOError, ImportError), e:
+        return open('README.md').read()
+
 def configuration(parent_package='', top_path=None):
     if os.path.exists('MANIFEST'):
         os.remove('MANIFEST')
@@ -25,6 +33,7 @@ metadata = {
     "license": 'BSD License',
     "platforms": 'Any',
     "configuration": configuration,
+    "long_description": readme(),
 }
 
 setup(**metadata)
