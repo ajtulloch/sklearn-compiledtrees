@@ -1,5 +1,7 @@
 # Compiled Trees
 
+[![Build Status](https://travis-ci.org/ajtulloch/sklearn-compiledtrees.png?branch=master)](https://travis-ci.org/ajtulloch/sklearn-compiledtrees)
+
 In some use cases, predicting given a model is in the hot-path, so speeding up decision tree evaluation is very useful.
 
 An effective way of speeding up evaluation of decision trees can be to generate code representing the evaluation of the tree, compile that to optimized object code, and dynamically load that file via dlopen/dlsym or equivalent.
