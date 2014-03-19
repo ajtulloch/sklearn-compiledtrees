@@ -1,9 +1,11 @@
-import contextlib
-import tempfile
-import os
-import subprocess
+from __future__ import print_function
 
 from distutils import sysconfig
+
+import contextlib
+import os
+import subprocess
+import tempfile
 
 CXX_COMPILER = sysconfig.get_config_var('CXX')
 
@@ -151,7 +153,12 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
 
 
 def compile_code_to_object(code):
-    # XXX - should we clean up the temporary directory left from mkdtemp()?
+    # XXX - should we clean up the temporary directory left from
+    # mkdtemp()?
+    def call(args):
+        DEVNULL = open(os.devnull, 'w')
+        subprocess.check_call(" ".join(args), shell=True, stdout=DEVNULL, stderr=DEVNULL)
+
     tmpdir = tempfile.mkdtemp()
     cpp_f = os.path.join(tmpdir, "tree.cpp")
     so_f = os.path.join(tmpdir, "tree.so")
@@ -160,7 +167,7 @@ def compile_code_to_object(code):
     with open(cpp_f, 'w') as f:
         f.write(code)
 
-    subprocess.check_call([CXX_COMPILER, cpp_f,  "-c", "-o", o_f, "-O3"])
-    subprocess.check_call([CXX_COMPILER, "-shared", o_f, "-dynamiclib",
-                           "-fpic", "-flto", "-o", so_f, "-O3"])
+    call([CXX_COMPILER, cpp_f,  "-c", "-o", o_f, "-O3"])
+    call([CXX_COMPILER, "-shared", o_f, "-dynamiclib",
+         "-fpic", "-flto", "-o", so_f, "-O3"])
     return so_f

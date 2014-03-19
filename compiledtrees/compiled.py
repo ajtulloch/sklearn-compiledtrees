@@ -1,11 +1,9 @@
 from __future__ import print_function
 
 from sklearn.utils import array2d
-from sklearn.tree.tree import DTYPE
+from sklearn.tree.tree import DecisionTreeRegressor,  DTYPE
 from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor
 from sklearn.ensemble.forest import ForestRegressor
-from sklearn.tree.tree import DecisionTreeRegressor
-
 
 import _compiled
 import code_gen as cg

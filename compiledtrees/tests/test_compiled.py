@@ -27,13 +27,13 @@ def assert_equal_predictions(cls, X, y):
 def test_rejects_unfitted_regressors_as_compilable():
     for cls in REGRESSORS:
         assert_equal(CompiledRegressionPredictor.compilable(cls()), False)
-        assert_raises(ValueError, tree.CompiledRegressionPredictor, cls())
+        assert_raises(ValueError, CompiledRegressionPredictor, cls())
 
 
 def test_rejects_classifiers_as_compilable():
     for cls in CLASSIFIERS:
         assert_equal(CompiledRegressionPredictor.compilable(cls()), False)
-        assert_raises(ValueError, tree.CompiledRegressionPredictor, cls())
+        assert_raises(ValueError, CompiledRegressionPredictor, cls())
 
 
 def test_correct_predictions():
