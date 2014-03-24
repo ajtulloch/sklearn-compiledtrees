@@ -2,6 +2,14 @@
 
 [![Build Status](https://travis-ci.org/ajtulloch/sklearn-compiledtrees.png?branch=master)](https://travis-ci.org/ajtulloch/sklearn-compiledtrees)
 
+## Installation
+
+```bash
+pip install sklearn-compiledtrees
+```
+
+## Rationale
+
 In some use cases, predicting given a model is in the hot-path, so speeding up decision tree evaluation is very useful.
 
 An effective way of speeding up evaluation of decision trees can be to generate code representing the evaluation of the tree, compile that to optimized object code, and dynamically load that file via dlopen/dlsym or equivalent.
@@ -16,6 +24,18 @@ This package implements the simple case of single-output regression
 trees. There are a few changes that need to be made to allow it to
 work on Linux (change the CXX compiler invocation flags), and Windows
 (use the appropriate equivalents of dlopen, etc).
+
+## Usage
+
+```python
+import compiledtrees
+
+clf = ensemble.GradientBoostingRegressor()
+clf.fit(X_train, y_train)
+
+compiled_predictor = compiledtrees.CompiledRegressionPredictor(clf)
+predictions = compiled_predictor.predict(X_test)
+```
 
 ## Benchmarks
 

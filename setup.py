@@ -10,6 +10,7 @@ def readme():
     except (IOError, ImportError), e:
         return open('README.md').read()
 
+    
 def configuration(parent_package='', top_path=None):
     if os.path.exists('MANIFEST'):
         os.remove('MANIFEST')
@@ -24,7 +25,7 @@ def configuration(parent_package='', top_path=None):
 
 metadata = {
     "name": 'sklearn-compiledtrees',
-    "version": '1.0',
+    "version": '1.0.1',
     "description": 'Compiled scikit-learn decision trees for faster evaluation',
     "author": 'Andrew Tulloch',
     "author_email": 'andrew@tullo.ch',
