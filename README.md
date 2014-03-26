@@ -16,19 +16,22 @@ An effective way of speeding up evaluation of decision trees can be to generate 
 
 See <https://courses.cs.washington.edu/courses/cse501/10au/compile-machlearn.pdf> for a detailed discussion, and <http://tullo.ch/articles/decision-tree-evaluation/> for a more pedagogical explanation and more benchmarks in C++.
 
-It's fairly trivial to implement this for regression trees due to the
-simpler `predict()` method, but in theory is possible do to it for
-arbitrary multi-class, multi-output trees.
 
-This package implements the simple case of single-output regression
-trees. There are a few changes that need to be made to allow it to
-work on Linux (change the CXX compiler invocation flags), and Windows
-(use the appropriate equivalents of dlopen, etc).
+This package implements compiled decision tree evaluation for the
+simple case of a single-output regression tree or ensemble.
+
+It has been tested to work on both OS X and Linux.  We do not
+currently support Windows platforms for compiled evaluation, although
+this should not be a signficant amount of work.
+
 
 ## Usage
 
 ```python
 import compiledtrees
+import sklearn.ensemble
+
+X_train, y_train, X_test, y_test = ...
 
 clf = ensemble.GradientBoostingRegressor()
 clf.fit(X_train, y_train)

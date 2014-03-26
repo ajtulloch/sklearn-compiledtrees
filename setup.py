@@ -7,10 +7,10 @@ def readme():
     try:
         import pypandoc
         return pypandoc.convert('README.md', 'rst')
-    except (IOError, ImportError), e:
+    except (IOError, ImportError):
         return open('README.md').read()
 
-    
+
 def configuration(parent_package='', top_path=None):
     if os.path.exists('MANIFEST'):
         os.remove('MANIFEST')
@@ -23,18 +23,31 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('compiledtrees')
     return config
 
-metadata = {
-    "name": 'sklearn-compiledtrees',
-    "version": '1.0.1',
-    "description": 'Compiled scikit-learn decision trees for faster evaluation',
-    "author": 'Andrew Tulloch',
-    "author_email": 'andrew@tullo.ch',
-    "url": 'sklearn-compiledtrees',
-    "packages": ['sklearn-compiledtrees'],
-    "license": 'BSD License',
-    "platforms": 'Any',
-    "configuration": configuration,
-    "long_description": readme(),
-}
-
-setup(**metadata)
+setup(
+    name='sklearn-compiledtrees',
+    version='1.0.3',
+    author='Andrew Tulloch',
+    author_email='andrew@tullo.ch',
+    maintainer='Andrew Tulloch',
+    maintainer_email='andrew@tullo.ch',
+    url='https://github.com/ajtulloch/sklearn-compiledtrees',
+    configuration=configuration,
+    description='Compiled scikit-learn decision trees for faster evaluation',
+    packages=['sklearn-compiledtrees'],
+    license='BSD License',
+    platforms='Any',
+    long_description=readme(),
+    classifiers=[
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved',
+        'Programming Language :: C',
+        'Programming Language :: Python',
+        'Topic :: Software Development',
+        'Topic :: Scientific/Engineering',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Operating System :: Unix',
+        'Operating System :: MacOS',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7'])
