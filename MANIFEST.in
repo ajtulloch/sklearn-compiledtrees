@@ -1,0 +1,6 @@
+include *.rst
+include .travis.yml
+include Makefile
+recursive-include benchmarks *.py
+recursive-include compiledtrees *.pxd
+recursive-include compiledtrees *.pyx

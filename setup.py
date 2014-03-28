@@ -3,14 +3,6 @@ from numpy.distutils.misc_util import Configuration
 import os
 
 
-def readme():
-    try:
-        import pypandoc
-        return pypandoc.convert('README.md', 'rst')
-    except (IOError, ImportError):
-        return open('README.md').read()
-
-
 def configuration(parent_package='', top_path=None):
     if os.path.exists('MANIFEST'):
         os.remove('MANIFEST')
@@ -25,7 +17,7 @@ def configuration(parent_package='', top_path=None):
 
 setup(
     name='sklearn-compiledtrees',
-    version='1.0.3',
+    version='1.1',
     author='Andrew Tulloch',
     author_email='andrew@tullo.ch',
     maintainer='Andrew Tulloch',
@@ -33,10 +25,10 @@ setup(
     url='https://github.com/ajtulloch/sklearn-compiledtrees',
     configuration=configuration,
     description='Compiled scikit-learn decision trees for faster evaluation',
-    packages=['sklearn-compiledtrees'],
+    packages=['compiledtrees'],
     license='BSD License',
     platforms='Any',
-    long_description=readme(),
+    long_description=open('README.rst').read(),
     classifiers=[
         'Intended Audience :: Science/Research',
         'Intended Audience :: Developers',
