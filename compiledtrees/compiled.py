@@ -46,7 +46,7 @@ class CompiledRegressionPredictor(object):
 
             # hack to get the initial (prior) on the decision tree.
             initial_value = clf._init_decision_function(
-                np.zeros(shape=(1, n_features))).flat[0]
+                np.zeros(shape=(1, n_features))).item((0, 0))
 
             lines = cg.code_gen_ensemble(
                 trees=[e.tree_ for e in clf.estimators_.flat],

@@ -61,7 +61,7 @@ def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
     def recur(node):
         if tree.children_left[node] == -1:
             assert tree.value[node].size == 1
-            gen.write("return {0};".format(tree.value[node][0][0]))
+            gen.write("return {0};".format(tree.value[node].item()))
             return
 
         branch = "if (f[{feature}] <= {threshold}) {{".format(
