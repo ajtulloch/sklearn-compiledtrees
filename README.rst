@@ -1,5 +1,5 @@
-Compiled Trees
-==============
+Scikit-Learn Compiled Trees
+===========================
 
 |Build Status|
 
