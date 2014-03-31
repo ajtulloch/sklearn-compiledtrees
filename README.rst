@@ -1,7 +1,9 @@
 Scikit-Learn Compiled Trees
 ===========================
 
-|Build Status|
+|Build Status| 
+|PyPI|
+
 
 Installation
 ------------
@@ -87,6 +89,10 @@ Graphs
 
 .. |Build Status| image:: https://travis-ci.org/ajtulloch/sklearn-compiledtrees.png?branch=master
    :target: https://travis-ci.org/ajtulloch/sklearn-compiledtrees
+   
+.. |PyPI| image:: https://badge.fury.io/py/sklearn-compiledtrees.png
+   :target: http://badge.fury.io/py/sklearn-compiledtrees
+
 .. |timings3907426606273805268| image:: https://f.cloud.github.com/assets/1121581/2453407/c70a64bc-aedd-11e3-94c7-519411ae6276.png
    :width: 500px
 .. |timings-1162001441413946416| image:: https://f.cloud.github.com/assets/1121581/2453409/c70ad4ec-aedd-11e3-972d-07a49a6bc610.png
