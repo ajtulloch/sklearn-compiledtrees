@@ -17,7 +17,7 @@ def configuration(parent_package='', top_path=None):
 
 setup(
     name='sklearn-compiledtrees',
-    version='1.1',
+    version='1.1.1',
     author='Andrew Tulloch',
     author_email='andrew@tullo.ch',
     maintainer='Andrew Tulloch',
@@ -26,7 +26,7 @@ setup(
     configuration=configuration,
     description='Compiled scikit-learn decision trees for faster evaluation',
     packages=['compiledtrees'],
-    license='BSD License',
+    license='MIT License',
     platforms='Any',
     long_description=open('README.rst').read(),
     classifiers=[
