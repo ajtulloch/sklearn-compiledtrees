@@ -5,6 +5,8 @@ Scikit-Learn Compiled Trees
 |PyPI|
 
 
+BSD License
+
 Installation
 ------------
 
