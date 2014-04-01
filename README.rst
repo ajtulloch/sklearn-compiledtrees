@@ -4,11 +4,10 @@ Scikit-Learn Compiled Trees
 |Build Status| 
 |PyPI|
 
-
-BSD License
-
 Installation
 ------------
+
+Released under the MIT License.
 
 .. code:: bash
 
