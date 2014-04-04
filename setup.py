@@ -17,7 +17,7 @@ def configuration(parent_package='', top_path=None):
 
 setup(
     name='sklearn-compiledtrees',
-    version='1.1.1',
+    version='1.2',
     author='Andrew Tulloch',
     author_email='andrew@tullo.ch',
     maintainer='Andrew Tulloch',
@@ -42,4 +42,6 @@ setup(
         'Operating System :: Unix',
         'Operating System :: MacOS',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7'])
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',])

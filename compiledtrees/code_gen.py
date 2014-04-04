@@ -86,46 +86,47 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
                       gen=None):
     """
     Writes code similar to:
-    ```
-        extern "C" {
-          __attribute__((__always_inline__)) float evaluate_partial_0(float* f) {
-            if (f[4] <= 0.662200987339) {
-              return 1.0;
-            }
-            else {
-              if (f[8] <= 0.804652512074) {
-                return 0.0;
-              }
-              else {
-                return 1.0;
-              }
-            }
-          }
-        }
-        extern "C" {
-          __attribute__((__always_inline__)) float evaluate_partial_1(float* f) {
-            if (f[4] <= 0.694428026676) {
-              return 1.0;
-            }
-            else {
-              if (f[7] <= 0.4402526021) {
-                return 1.0;
-              }
-              else {
-                return 0.0;
-              }
-            }
-          }
-        }
 
-        extern "C" {
-          float evaluate(float* f) {
-            float result = 0.0;
-            result += evaluate_partial_0(f) * 0.1;
-            result += evaluate_partial_1(f) * 0.1;
-            return result;
+    ```
+    extern "C" {
+      __attribute__((__always_inline__)) float evaluate_partial_0(float* f) {
+        if (f[4] <= 0.662200987339) {
+          return 1.0;
+        }
+        else {
+          if (f[8] <= 0.804652512074) {
+            return 0.0;
+          }
+          else {
+            return 1.0;
           }
         }
+      }
+    }
+    extern "C" {
+      __attribute__((__always_inline__)) float evaluate_partial_1(float* f) {
+        if (f[4] <= 0.694428026676) {
+          return 1.0;
+        }
+        else {
+          if (f[7] <= 0.4402526021) {
+            return 1.0;
+          }
+          else {
+            return 0.0;
+          }
+        }
+      }
+    }
+
+    extern "C" {
+      float evaluate(float* f) {
+        float result = 0.0;
+        result += evaluate_partial_0(f) * 0.1;
+        result += evaluate_partial_1(f) * 0.1;
+        return result;
+      }
+    }
     ```
 
     to the given CodeGenerator object.
@@ -157,7 +158,8 @@ def compile_code_to_object(code):
     # mkdtemp()?
     def call(args):
         DEVNULL = open(os.devnull, 'w')
-        subprocess.check_call(" ".join(args), shell=True, stdout=DEVNULL, stderr=DEVNULL)
+        subprocess.check_call(" ".join(args),
+                              shell=True, stdout=DEVNULL, stderr=DEVNULL)
 
     tmpdir = tempfile.mkdtemp()
     cpp_f = os.path.join(tmpdir, "tree.cpp")
@@ -167,7 +169,7 @@ def compile_code_to_object(code):
     with open(cpp_f, 'w') as f:
         f.write(code)
 
-    call([CXX_COMPILER, cpp_f,  "-c", "-o", o_f, "-O3"])
+    call([CXX_COMPILER, cpp_f, "-c", "-o", o_f, "-O3"])
     call([CXX_COMPILER, "-shared", o_f, "-dynamiclib",
          "-fpic", "-flto", "-o", so_f, "-O3"])
     return so_f

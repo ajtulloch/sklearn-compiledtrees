@@ -1,5 +1,5 @@
 from sklearn import ensemble, tree
-from ..compiled import CompiledRegressionPredictor
+from compiledtrees.compiled import CompiledRegressionPredictor
 from sklearn.utils.testing import \
     assert_array_almost_equal, assert_raises, assert_equal
 import numpy as np

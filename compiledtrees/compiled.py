@@ -1,12 +1,12 @@
 from __future__ import print_function
 
 from sklearn.utils import array2d
-from sklearn.tree.tree import DecisionTreeRegressor,  DTYPE
+from sklearn.tree.tree import DecisionTreeRegressor, DTYPE
 from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor
 from sklearn.ensemble.forest import ForestRegressor
 
-import _compiled
-import code_gen as cg
+from compiledtrees import _compiled
+from compiledtrees import code_gen as cg
 import numpy as np
 
 
@@ -65,7 +65,7 @@ class CompiledRegressionPredictor(object):
 
         so_f = cg.compile_code_to_object("\n".join(lines))
         return n_features, _compiled.CompiledPredictor(
-            so_f, cg.EVALUATE_FN_NAME)
+            so_f.encode("ascii"), cg.EVALUATE_FN_NAME.encode("ascii"))
 
     @classmethod
     def compilable(cls, clf):
@@ -119,7 +119,7 @@ class CompiledRegressionPredictor(object):
             raise ValueError("Number of features of the model must "
                              " match the input. Model n_features is {} and "
                              " input n_features is {}".format(
-                                 self.n_features_, n_features))
+                                 self._n_features, n_features))
 
         result = np.empty(n_samples, dtype=DTYPE)
         return self._evaluator.predict(X, result)

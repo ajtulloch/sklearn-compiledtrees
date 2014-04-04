@@ -1,3 +1,3 @@
-from compiled import CompiledRegressionPredictor
+from compiledtrees.compiled import CompiledRegressionPredictor
 
 __all__ = ["CompiledRegressionPredictor"]
