@@ -32,7 +32,7 @@ class CompiledRegressionPredictor(object):
     @classmethod
     def _build(cls, clf):
         if not cls.compilable(clf):
-            raise ValueError("Predictor %s cannot be compiled".format(
+            raise ValueError("Predictor {} cannot be compiled".format(
                 clf.__class__.__name__))
 
         lines = None
