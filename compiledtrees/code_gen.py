@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 from __future__ import print_function
 
 from distutils import sysconfig
@@ -61,10 +64,10 @@ def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
     def recur(node):
         if tree.children_left[node] == -1:
             assert tree.value[node].size == 1
-            gen.write("return {0};".format(tree.value[node].item()))
+            gen.write("return {0}f;".format(tree.value[node].item()))
             return
 
-        branch = "if (f[{feature}] <= {threshold}) {{".format(
+        branch = "if (f[{feature}] <= {threshold}f) {{".format(
             feature=tree.feature[node],
             threshold=tree.threshold[node])
         with gen.bracketed(branch, "}"):
@@ -142,9 +145,9 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
     with gen.bracketed('extern "C" {', "}"):
         fn_decl = "float {name}(float* f) {{".format(name=EVALUATE_FN_NAME)
         with gen.bracketed(fn_decl, "}"):
-            gen.write("float result = {0};".format(initial_value))
+            gen.write("float result = {0}f;".format(initial_value))
             for i, _ in enumerate(trees):
-                increment = "result += {name}_{index}(f) * {weight};".format(
+                increment = "result += {name}_{index}(f) * {weight}f;".format(
                     name=EVALUATE_FN_NAME,
                     index=i,
                     weight=individual_learner_weight)
@@ -169,7 +172,7 @@ def compile_code_to_object(code):
     with open(cpp_f, 'w') as f:
         f.write(code)
 
-    call([CXX_COMPILER, cpp_f, "-c", "-o", o_f, "-O3"])
-    call([CXX_COMPILER, "-shared", o_f, "-dynamiclib",
-         "-fpic", "-flto", "-o", so_f, "-O3"])
+    call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f, "-O3"])
+    call([CXX_COMPILER, "-shared", o_f,
+         "-fPIC", "-flto", "-o", so_f, "-O3"])
     return so_f

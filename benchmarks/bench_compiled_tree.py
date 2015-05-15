@@ -1,12 +1,14 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 from __future__ import print_function
 
 from collections import namedtuple
 from datetime import datetime
 from functools import partial
 from sklearn import ensemble, datasets
-import compiledtrees
+from compiledtrees.compiled import CompiledRegressionPredictor
 from sklearn.tree.tree import DTYPE
-from sklearn.utils import array2d
 from sklearn.utils.bench import total_seconds
 import argparse
 import gc
@@ -46,7 +48,7 @@ DATASETS = {
 
 ENSEMBLE_REGRESSORS = [
     ("GB-D1", with_depth(ensemble.GradientBoostingRegressor, 1)),
-    ("GB-D3",  with_depth(ensemble.GradientBoostingRegressor, 3)),
+    ("GB-D3", with_depth(ensemble.GradientBoostingRegressor, 3)),
     ("GB-B10", with_best_first(ensemble.GradientBoostingRegressor, 10)),
     ("RF-D1", with_depth(ensemble.RandomForestRegressor, 1)),
     ("RF-D3", with_depth(ensemble.RandomForestRegressor, 3)),
@@ -74,7 +76,7 @@ def run_ensemble(args, name, cls, X, y):
     def run(n_estimators):
         clf = cls(n_estimators=n_estimators)
         clf.fit(X, y)
-        compiled = compiledtrees.CompiledRegressionPredictor(clf)
+        compiled = CompiledRegressionPredictor(clf)
         relative_timing = RelativeTiming(
             compiled=timing(compiled), normal=timing(clf))
         print(n_estimators, relative_timing)
@@ -95,8 +97,14 @@ def plot(args, timings):
     for name, cls_timings in timings:
         xs, relative_timings = zip(*cls_timings)
         ys = [r.normal / r.compiled for r in relative_timings]
-        plt.plot(xs, ys, '-o', label=name)
-        plt.hlines(1.0, np.min(xs), np.max(xs), 'k')
+        for x, y in zip(xs, ys):
+            print(xs, ys)
+        if args.show_plot:
+            plt.plot(xs, ys, '-o', label=name)
+            plt.hlines(1.0, np.min(xs), np.max(xs), 'k')
+
+    if not args.show_plot:
+        return
 
     plt.xlabel('Number of weak learners')
     plt.ylabel('Relative speedup')
@@ -107,14 +115,15 @@ def plot(args, timings):
     plt.title(title)
     plt.suptitle(suptitle, fontsize=3)
     filename = "timings{0}.png".format(hash(str(args)))
-    plt.savefig(filename, dpi=300)
+    plt.savefig(filename, dpi=72)
 
 
 def run_simulation(args):
     X, y = DATASETS[args.dataset](args)
-    X = array2d(X, dtype=DTYPE)
+    X = X.astype(dtype=DTYPE)
     timings = [(name, run_ensemble(args, name, cls, X, y))
                for name, cls in ENSEMBLE_REGRESSORS]
+    print(timings)
     plot(args, timings)
 
 

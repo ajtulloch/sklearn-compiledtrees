@@ -1,6 +1,8 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 from __future__ import print_function
 
-from sklearn.utils import array2d
 from sklearn.tree.tree import DecisionTreeRegressor, DTYPE
 from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor
 from sklearn.ensemble.forest import ForestRegressor
@@ -27,7 +29,20 @@ class CompiledRegressionPredictor(object):
     http://crsouza.blogspot.com/2012/01/decision-trees-in-c.html
     """
     def __init__(self, clf):
-        self._n_features, self._evaluator = self._build(clf)
+        self._n_features, self._evaluator, self._so_f = self._build(clf)
+
+    def __getstate__(self):
+        return dict(n_features=self._n_features, so_f=open(self._so_f).read())
+
+    def __setstate__(self, state):
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False) as tf:
+            tf.write(state["so_f"])
+        self._n_features = state["n_features"]
+        self._so_f = tf.name
+        self._evaluator = _compiled.CompiledPredictor(
+            tf.name.encode("ascii"),
+            cg.EVALUATE_FN_NAME.encode("ascii"))
 
     @classmethod
     def _build(cls, clf):
@@ -64,8 +79,10 @@ class CompiledRegressionPredictor(object):
         assert lines is not None
 
         so_f = cg.compile_code_to_object("\n".join(lines))
-        return n_features, _compiled.CompiledPredictor(
-            so_f.encode("ascii"), cg.EVALUATE_FN_NAME.encode("ascii"))
+        evaluator = _compiled.CompiledPredictor(
+            so_f.encode("ascii"),
+            cg.EVALUATE_FN_NAME.encode("ascii"))
+        return n_features, evaluator, so_f
 
     @classmethod
     def compilable(cls, clf):
@@ -110,10 +127,13 @@ class CompiledRegressionPredictor(object):
         y: array of shape = [n_samples]
             The predicted values.
         """
-        if getattr(X, "dtype", None) != DTYPE or X.ndim != 2:
-            X = array2d(X, dtype=DTYPE)
+        if X.dtype != DTYPE:
+            raise ValueError("X.dtype is {}, not {}".format(X.dtype, DTYPE))
+        if X.ndim != 2:
+            raise ValueError(
+                "Input must be 2-dimensional (n_samples, n_features), "
+                "not {}".format(X.shape))
 
-        # TODO - validate n_features is correct?
         n_samples, n_features = X.shape
         if self._n_features != n_features:
             raise ValueError("Number of features of the model must "
