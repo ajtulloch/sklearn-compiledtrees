@@ -8,7 +8,7 @@ virtualenv:
 before_install:
     - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then sudo apt-get update -qq ; fi
     - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then sudo apt-get install -qq python-scipy python-nose python-pip ; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then sudo pip install scikit-learn ; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then sudo pip install scikit-learn joblib ; fi
 install:
     - python setup.py build_ext --inplace
     - if [ "${COVERAGE}" == "--with-coverage" ]; then sudo pip install coverage; fi
