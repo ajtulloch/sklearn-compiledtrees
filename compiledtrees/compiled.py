@@ -28,33 +28,35 @@ class CompiledRegressionPredictor(object):
     http://courses.cs.washington.edu/courses/cse501/10au/compile-machlearn.pdf
     http://crsouza.blogspot.com/2012/01/decision-trees-in-c.html
     """
-    def __init__(self, clf):
-        self._n_features, self._evaluator, self._so_f = self._build(clf)
+    def __init__(self, clf, n_jobs=-1):
+        self._n_features, self._evaluator, self._so_f_object = self._build(clf, n_jobs)
+        self._so_f = self._so_f_object.name
 
     def __getstate__(self):
         return dict(n_features=self._n_features, so_f=open(self._so_f).read())
 
     def __setstate__(self, state):
         import tempfile
-        with tempfile.NamedTemporaryFile(delete=False) as tf:
-            tf.write(state["so_f"])
+        self._so_f_object = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=True)
+        self._so_f_object.write(state["so_f"])
+        self._so_f_object.flush()
+        self._so_f = self._so_f_object.name
         self._n_features = state["n_features"]
-        self._so_f = tf.name
         self._evaluator = _compiled.CompiledPredictor(
-            tf.name.encode("ascii"),
+            self._so_f_object.name.encode("ascii"),
             cg.EVALUATE_FN_NAME.encode("ascii"))
 
     @classmethod
-    def _build(cls, clf):
+    def _build(cls, clf, n_jobs=1):
         if not cls.compilable(clf):
             raise ValueError("Predictor {} cannot be compiled".format(
                 clf.__class__.__name__))
 
-        lines = None
+        files = None
         n_features = None
         if isinstance(clf, DecisionTreeRegressor):
             n_features = clf.n_features_
-            lines = cg.code_gen_tree(tree=clf.tree_)
+            files = cg.code_gen_tree(tree=clf.tree_)
 
         if isinstance(clf, GradientBoostingRegressor):
             n_features = clf.n_features
@@ -63,24 +65,24 @@ class CompiledRegressionPredictor(object):
             initial_value = clf._init_decision_function(
                 np.zeros(shape=(1, n_features))).item((0, 0))
 
-            lines = cg.code_gen_ensemble(
+            files = cg.code_gen_ensemble(
                 trees=[e.tree_ for e in clf.estimators_.flat],
                 individual_learner_weight=clf.learning_rate,
-                initial_value=initial_value)
+                initial_value=initial_value, n_jobs=n_jobs)
 
         if isinstance(clf, ForestRegressor):
             n_features = clf.n_features_
-            lines = cg.code_gen_ensemble(
+            files = cg.code_gen_ensemble(
                 trees=[e.tree_ for e in clf.estimators_],
                 individual_learner_weight=1.0 / clf.n_estimators,
-                initial_value=0.0)
+                initial_value=0.0, n_jobs=n_jobs)
 
         assert n_features is not None
-        assert lines is not None
+        assert files is not None
 
-        so_f = cg.compile_code_to_object("\n".join(lines))
+        so_f = cg.compile_code_to_object(files, n_jobs=n_jobs)
         evaluator = _compiled.CompiledPredictor(
-            so_f.encode("ascii"),
+            so_f.name.encode("ascii"),
             cg.EVALUATE_FN_NAME.encode("ascii"))
         return n_features, evaluator, so_f
 

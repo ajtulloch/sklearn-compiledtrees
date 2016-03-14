@@ -9,6 +9,7 @@ import contextlib
 import os
 import subprocess
 import tempfile
+from joblib import Parallel, delayed
 
 CXX_COMPILER = sysconfig.get_config_var('CXX')
 
@@ -18,15 +19,16 @@ ALWAYS_INLINE = "__attribute__((__always_inline__))"
 
 class CodeGenerator(object):
     def __init__(self):
-        self._lines = []
+        self._file = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.cpp', delete=True)
         self._indent = 0
 
     @property
-    def lines(self):
-        return self._lines
+    def file(self):
+        self._file.flush()
+        return self._file
 
     def write(self, line):
-        self._lines.append("  " * self._indent + line)
+        self._file.write("  " * self._indent + line + "\n")
 
     @contextlib.contextmanager
     def bracketed(self, preamble, postamble):
@@ -82,11 +84,19 @@ def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
             name=evaluate_fn)
         with gen.bracketed(fn_decl, "}"):
             recur(0)
-    return gen.lines
+    return gen.file
 
+def _gen_tree(i, tree):
+    """
+    Generates cpp code for i'th tree.
+    Moved out of code_gen_ensemble scope for parallelization.
+    """
+    name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
+    gen_tree = CodeGenerator()
+    return code_gen_tree(tree, name, gen_tree)
 
 def code_gen_ensemble(trees, individual_learner_weight, initial_value,
-                      gen=None):
+                      gen=None, n_jobs=1):
     """
     Writes code similar to:
 
@@ -138,11 +148,14 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
     if gen is None:
         gen = CodeGenerator()
 
-    for i, tree in enumerate(trees):
-        name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
-        code_gen_tree(tree, name, gen)
+    tree_files =[_gen_tree(i, tree) for i, tree in enumerate(trees)]
 
     with gen.bracketed('extern "C" {', "}"):
+        # add dummy definitions if you will compile in parallel
+        for i, tree in enumerate(trees):
+            name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
+            gen.write("float {name}(float* f);".format(name=name))
+
         fn_decl = "float {name}(float* f) {{".format(name=EVALUATE_FN_NAME)
         with gen.bracketed(fn_decl, "}"):
             gen.write("float result = {0}f;".format(initial_value))
@@ -153,26 +166,27 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
                     weight=individual_learner_weight)
                 gen.write(increment)
             gen.write("return result;")
-    return gen.lines
+    return tree_files + [gen.file]
 
+def _compile(cpp_f):
+    o_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.o', delete=True)
+    _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, "-O3"])
+    return o_f
 
-def compile_code_to_object(code):
-    # XXX - should we clean up the temporary directory left from
-    # mkdtemp()?
-    def call(args):
-        DEVNULL = open(os.devnull, 'w')
-        subprocess.check_call(" ".join(args),
-                              shell=True, stdout=DEVNULL, stderr=DEVNULL)
+def _call(args):
+    DEVNULL = open(os.devnull, 'w')
+    subprocess.check_call(" ".join(args),
+                          shell=True, stdout=DEVNULL, stderr=DEVNULL)
 
-    tmpdir = tempfile.mkdtemp()
-    cpp_f = os.path.join(tmpdir, "tree.cpp")
-    so_f = os.path.join(tmpdir, "tree.so")
-    o_f = os.path.join(tmpdir, "tree.o")
+def compile_code_to_object(files, n_jobs=1):
+    # if ther is a single file then create single element list
+    # unicode for filename; name attribute for file-like objects
+    if type(files) is unicode or hasattr(files, 'name'):
+        files = [files]
 
-    with open(cpp_f, 'w') as f:
-        f.write(code)
-
-    call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f, "-O3"])
-    call([CXX_COMPILER, "-shared", o_f,
-         "-fPIC", "-flto", "-o", so_f, "-O3"])
+    so_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=True)
+    o_files = Parallel(n_jobs=n_jobs, backend='threading')(delayed(_compile)(f.name) for f in files)
+    # link trees
+    _call([CXX_COMPILER, "-shared"] + [f.name for f in o_files] + ["-fPIC",
+        "-flto", "-o", so_f.name, "-O3"])
     return so_f
