@@ -130,7 +130,7 @@ class CompiledRegressionPredictor(object):
             The predicted values.
         """
         if X.dtype != DTYPE:
-            raise ValueError("X.dtype is {}, not {}".format(X.dtype, DTYPE))
+            X = X.astype(DTYPE)
         if X.ndim != 2:
             raise ValueError(
                 "Input must be 2-dimensional (n_samples, n_features), "
