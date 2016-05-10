@@ -90,6 +90,5 @@ class TestCompiledTrees(unittest.TestCase):
             clf = cls()
             clf.fit(X, y)
             compiled = CompiledRegressionPredictor(clf)
-            assert_raises(ValueError, compiled.predict, X.astype(np.float64))
             assert_raises(ValueError, compiled.predict,
                           np.resize(X, (1, num_features, num_features)))
