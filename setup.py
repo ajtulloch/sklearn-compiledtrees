@@ -17,7 +17,7 @@ def configuration(parent_package='', top_path=None):
 
 setup(
     name='sklearn-compiledtrees',
-    version='1.2',
+    version='1.3',
     author='Andrew Tulloch',
     author_email='andrew@tullo.ch',
     maintainer='Andrew Tulloch',
