@@ -170,7 +170,7 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
 
 def _compile(cpp_f):
     o_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.o', delete=True)
-    _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, "-O3"])
+    _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, "-O3", "-pipe"])
     return o_f
 
 def _call(args):
@@ -188,5 +188,5 @@ def compile_code_to_object(files, n_jobs=1):
     o_files = Parallel(n_jobs=n_jobs, backend='threading')(delayed(_compile)(f.name) for f in files)
     # link trees
     _call([CXX_COMPILER, "-shared"] + [f.name for f in o_files] + ["-fPIC",
-        "-flto", "-o", so_f.name, "-O3"])
+        "-flto", "-o", so_f.name, "-O3", "-pipe"])
     return so_f
