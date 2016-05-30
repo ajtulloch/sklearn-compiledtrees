@@ -12,10 +12,11 @@ cdef extern from "dlfcn.h":
 cdef extern from "dlfcn.h":
   cdef long RTLD_LAZY
   cdef long RTLD_GLOBAL
+  cdef long RTLD_NOW
 
 cdef class CompiledPredictor:
     def __cinit__(self, const char* filename, const char* symbol):
-        cdef void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL)
+        cdef void* handle = dlopen(filename, RTLD_NOW)
         if handle == NULL:
             raise ValueError("Could not find compiled evaluation file")
         self.handle = handle
