@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from sklearn import ensemble, tree
 from compiledtrees.compiled import CompiledRegressionPredictor
 from sklearn.utils.testing import \
-    assert_array_almost_equal, assert_raises, assert_equal
+    assert_array_almost_equal, assert_raises, assert_equal, assert_allclose
 import numpy as np
 import unittest
 import tempfile
@@ -92,3 +92,4 @@ class TestCompiledTrees(unittest.TestCase):
             compiled = CompiledRegressionPredictor(clf)
             assert_raises(ValueError, compiled.predict,
                           np.resize(X, (1, num_features, num_features)))
+            assert_allclose(compiled.score(X, y), clf.score(X, y))

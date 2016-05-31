@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+from sklearn.base import RegressorMixin
 from sklearn.tree.tree import DecisionTreeRegressor, DTYPE
 from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor
 from sklearn.ensemble.forest import ForestRegressor
@@ -12,7 +13,7 @@ from compiledtrees import code_gen as cg
 import numpy as np
 
 
-class CompiledRegressionPredictor(object):
+class CompiledRegressionPredictor(RegressorMixin):
     """Class to construct a compiled predictor from a previously trained
     ensemble of decision trees.
 
