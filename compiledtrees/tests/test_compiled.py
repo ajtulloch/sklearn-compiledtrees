@@ -53,7 +53,7 @@ def assert_equal_predictions(cls, X, y):
     predictors = [clf, compiled, depickled, decpickled, dedepickled]
     predictions = [p.predict(X) for p in predictors]
     for (p1, p2) in pairwise(predictions):
-        assert_array_almost_equal(p1, p2)
+        assert_array_almost_equal(p1, p2, decimal=10)
 
 
 class TestCompiledTrees(unittest.TestCase):

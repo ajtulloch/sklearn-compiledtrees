@@ -32,8 +32,8 @@ cdef class CompiledPredictor:
     @cython.wraparound(False)
     def predict(self,
                 np.ndarray[DTYPE_t, ndim=2, mode='c'] X,
-                np.ndarray[DTYPE_t, ndim=1, mode='c'] output):
+                np.ndarray[DOUBLE_t, ndim=1, mode='c'] output):
         cdef Py_ssize_t num_samples = X.shape[0]
         for i in range(num_samples):
-            output[i] = ((<DTYPE_t (*)(DTYPE_t*)> self.func))(&X[i, 0])
+            output[i] = ((<DOUBLE_t (*)(DTYPE_t*)> self.func))(&X[i, 0])
         return output

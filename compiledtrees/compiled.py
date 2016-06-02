@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 from sklearn.base import RegressorMixin
-from sklearn.tree.tree import DecisionTreeRegressor, DTYPE
+from sklearn.tree.tree import DecisionTreeRegressor, DTYPE, DOUBLE
 from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor
 from sklearn.ensemble.forest import ForestRegressor
 
@@ -144,5 +144,5 @@ class CompiledRegressionPredictor(RegressorMixin):
                              " input n_features is {}".format(
                                  self._n_features, n_features))
 
-        result = np.empty(n_samples, dtype=DTYPE)
+        result = np.empty(n_samples, dtype=DOUBLE)
         return self._evaluator.predict(X, result)

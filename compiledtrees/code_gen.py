@@ -47,7 +47,7 @@ def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
     Writes code similar to:
     ```
         extern "C" {
-          __attribute__((__always_inline__)) float evaluate(float* f) {
+          __attribute__((__always_inline__)) double evaluate(float* f) {
             if (f[9] <= 0.175931170583) {
               return 0.0;
             }
@@ -66,7 +66,7 @@ def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
     def recur(node):
         if tree.children_left[node] == -1:
             assert tree.value[node].size == 1
-            gen.write("return {0}f;".format(tree.value[node].item()))
+            gen.write("return {0};".format(tree.value[node].item()))
             return
 
         branch = "if (f[{feature}] <= {threshold}f) {{".format(
@@ -79,7 +79,7 @@ def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
             recur(tree.children_right[node])
 
     with gen.bracketed('extern "C" {', "}"):
-        fn_decl = "{inline} float {name}(float* f) {{".format(
+        fn_decl = "{inline} double {name}(float* f) {{".format(
             inline=ALWAYS_INLINE,
             name=evaluate_fn)
         with gen.bracketed(fn_decl, "}"):
@@ -102,7 +102,7 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
 
     ```
     extern "C" {
-      __attribute__((__always_inline__)) float evaluate_partial_0(float* f) {
+      __attribute__((__always_inline__)) double evaluate_partial_0(float* f) {
         if (f[4] <= 0.662200987339) {
           return 1.0;
         }
@@ -117,7 +117,7 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
       }
     }
     extern "C" {
-      __attribute__((__always_inline__)) float evaluate_partial_1(float* f) {
+      __attribute__((__always_inline__)) double evaluate_partial_1(float* f) {
         if (f[4] <= 0.694428026676) {
           return 1.0;
         }
@@ -133,8 +133,8 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
     }
 
     extern "C" {
-      float evaluate(float* f) {
-        float result = 0.0;
+      double evaluate(float* f) {
+        double result = 0.0;
         result += evaluate_partial_0(f) * 0.1;
         result += evaluate_partial_1(f) * 0.1;
         return result;
@@ -154,13 +154,13 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
         # add dummy definitions if you will compile in parallel
         for i, tree in enumerate(trees):
             name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
-            gen.write("float {name}(float* f);".format(name=name))
+            gen.write("double {name}(float* f);".format(name=name))
 
-        fn_decl = "float {name}(float* f) {{".format(name=EVALUATE_FN_NAME)
+        fn_decl = "double {name}(float* f) {{".format(name=EVALUATE_FN_NAME)
         with gen.bracketed(fn_decl, "}"):
-            gen.write("float result = {0}f;".format(initial_value))
+            gen.write("double result = {0};".format(initial_value))
             for i, _ in enumerate(trees):
-                increment = "result += {name}_{index}(f) * {weight}f;".format(
+                increment = "result += {name}_{index}(f) * {weight};".format(
                     name=EVALUATE_FN_NAME,
                     index=i,
                     weight=individual_learner_weight)
