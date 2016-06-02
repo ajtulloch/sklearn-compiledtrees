@@ -10,8 +10,6 @@ cdef extern from "dlfcn.h":
   void dlclose(void* handle)
 
 cdef extern from "dlfcn.h":
-  cdef long RTLD_LAZY
-  cdef long RTLD_GLOBAL
   cdef long RTLD_NOW
 
 cdef class CompiledPredictor:
