@@ -1289,11 +1289,11 @@ static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__7;
 static PyObject *__pyx_tuple__8;
 
-/* "compiledtrees/_compiled.pyx":17
+/* "compiledtrees/_compiled.pyx":16
  * 
  * cdef class CompiledPredictor:
  *     def __cinit__(self, const char* filename, const char* symbol):             # <<<<<<<<<<<<<<
- *         cdef void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL)
+ *         cdef void* handle = dlopen(filename, RTLD_NOW)
  *         if handle == NULL:
  */
 
@@ -1325,11 +1325,11 @@ static int __pyx_pw_13compiledtrees_9_compiled_17CompiledPredictor_1__cinit__(Py
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_symbol)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 2, 2, 1); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 2, 2, 1); __PYX_ERR(0, 16, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) __PYX_ERR(0, 17, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) __PYX_ERR(0, 16, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -1337,12 +1337,12 @@ static int __pyx_pw_13compiledtrees_9_compiled_17CompiledPredictor_1__cinit__(Py
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_filename = __Pyx_PyObject_AsString(values[0]); if (unlikely((!__pyx_v_filename) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
-    __pyx_v_symbol = __Pyx_PyObject_AsString(values[1]); if (unlikely((!__pyx_v_symbol) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
+    __pyx_v_filename = __Pyx_PyObject_AsString(values[0]); if (unlikely((!__pyx_v_filename) && PyErr_Occurred())) __PYX_ERR(0, 16, __pyx_L3_error)
+    __pyx_v_symbol = __Pyx_PyObject_AsString(values[1]); if (unlikely((!__pyx_v_symbol) && PyErr_Occurred())) __PYX_ERR(0, 16, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 17, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 16, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("compiledtrees._compiled.CompiledPredictor.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1364,18 +1364,18 @@ static int __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor___cinit__(str
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "compiledtrees/_compiled.pyx":18
+  /* "compiledtrees/_compiled.pyx":17
  * cdef class CompiledPredictor:
  *     def __cinit__(self, const char* filename, const char* symbol):
- *         cdef void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL)             # <<<<<<<<<<<<<<
+ *         cdef void* handle = dlopen(filename, RTLD_NOW)             # <<<<<<<<<<<<<<
  *         if handle == NULL:
  *             raise ValueError("Could not find compiled evaluation file")
  */
-  __pyx_v_handle = dlopen(__pyx_v_filename, (RTLD_LAZY | RTLD_GLOBAL));
+  __pyx_v_handle = dlopen(__pyx_v_filename, RTLD_NOW);
 
-  /* "compiledtrees/_compiled.pyx":19
+  /* "compiledtrees/_compiled.pyx":18
  *     def __cinit__(self, const char* filename, const char* symbol):
- *         cdef void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL)
+ *         cdef void* handle = dlopen(filename, RTLD_NOW)
  *         if handle == NULL:             # <<<<<<<<<<<<<<
  *             raise ValueError("Could not find compiled evaluation file")
  *         self.handle = handle
@@ -1383,29 +1383,29 @@ static int __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor___cinit__(str
   __pyx_t_1 = ((__pyx_v_handle == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "compiledtrees/_compiled.pyx":20
- *         cdef void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL)
+    /* "compiledtrees/_compiled.pyx":19
+ *         cdef void* handle = dlopen(filename, RTLD_NOW)
  *         if handle == NULL:
  *             raise ValueError("Could not find compiled evaluation file")             # <<<<<<<<<<<<<<
  *         self.handle = handle
  *         cdef void* func = dlsym(self.handle, symbol)
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 19, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 20, __pyx_L1_error)
+    __PYX_ERR(0, 19, __pyx_L1_error)
 
-    /* "compiledtrees/_compiled.pyx":19
+    /* "compiledtrees/_compiled.pyx":18
  *     def __cinit__(self, const char* filename, const char* symbol):
- *         cdef void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL)
+ *         cdef void* handle = dlopen(filename, RTLD_NOW)
  *         if handle == NULL:             # <<<<<<<<<<<<<<
  *             raise ValueError("Could not find compiled evaluation file")
  *         self.handle = handle
  */
   }
 
-  /* "compiledtrees/_compiled.pyx":21
+  /* "compiledtrees/_compiled.pyx":20
  *         if handle == NULL:
  *             raise ValueError("Could not find compiled evaluation file")
  *         self.handle = handle             # <<<<<<<<<<<<<<
@@ -1414,7 +1414,7 @@ static int __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor___cinit__(str
  */
   __pyx_v_self->handle = __pyx_v_handle;
 
-  /* "compiledtrees/_compiled.pyx":22
+  /* "compiledtrees/_compiled.pyx":21
  *             raise ValueError("Could not find compiled evaluation file")
  *         self.handle = handle
  *         cdef void* func = dlsym(self.handle, symbol)             # <<<<<<<<<<<<<<
@@ -1423,7 +1423,7 @@ static int __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor___cinit__(str
  */
   __pyx_v_func = dlsym(__pyx_v_self->handle, __pyx_v_symbol);
 
-  /* "compiledtrees/_compiled.pyx":23
+  /* "compiledtrees/_compiled.pyx":22
  *         self.handle = handle
  *         cdef void* func = dlsym(self.handle, symbol)
  *         if func == NULL:             # <<<<<<<<<<<<<<
@@ -1433,20 +1433,20 @@ static int __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor___cinit__(str
   __pyx_t_1 = ((__pyx_v_func == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "compiledtrees/_compiled.pyx":24
+    /* "compiledtrees/_compiled.pyx":23
  *         cdef void* func = dlsym(self.handle, symbol)
  *         if func == NULL:
  *             raise ValueError("Could not find compiled evaluation function in file")             # <<<<<<<<<<<<<<
  *         self.func = func
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 24, __pyx_L1_error)
+    __PYX_ERR(0, 23, __pyx_L1_error)
 
-    /* "compiledtrees/_compiled.pyx":23
+    /* "compiledtrees/_compiled.pyx":22
  *         self.handle = handle
  *         cdef void* func = dlsym(self.handle, symbol)
  *         if func == NULL:             # <<<<<<<<<<<<<<
@@ -1455,7 +1455,7 @@ static int __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor___cinit__(str
  */
   }
 
-  /* "compiledtrees/_compiled.pyx":25
+  /* "compiledtrees/_compiled.pyx":24
  *         if func == NULL:
  *             raise ValueError("Could not find compiled evaluation function in file")
  *         self.func = func             # <<<<<<<<<<<<<<
@@ -1464,11 +1464,11 @@ static int __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor___cinit__(str
  */
   __pyx_v_self->func = __pyx_v_func;
 
-  /* "compiledtrees/_compiled.pyx":17
+  /* "compiledtrees/_compiled.pyx":16
  * 
  * cdef class CompiledPredictor:
  *     def __cinit__(self, const char* filename, const char* symbol):             # <<<<<<<<<<<<<<
- *         cdef void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL)
+ *         cdef void* handle = dlopen(filename, RTLD_NOW)
  *         if handle == NULL:
  */
 
@@ -1484,7 +1484,7 @@ static int __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor___cinit__(str
   return __pyx_r;
 }
 
-/* "compiledtrees/_compiled.pyx":27
+/* "compiledtrees/_compiled.pyx":26
  *         self.func = func
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -1507,7 +1507,7 @@ static void __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_2__dealloc__
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "compiledtrees/_compiled.pyx":28
+  /* "compiledtrees/_compiled.pyx":27
  * 
  *     def __dealloc__(self):
  *         dlclose(self.handle)             # <<<<<<<<<<<<<<
@@ -1516,7 +1516,7 @@ static void __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_2__dealloc__
  */
   dlclose(__pyx_v_self->handle);
 
-  /* "compiledtrees/_compiled.pyx":27
+  /* "compiledtrees/_compiled.pyx":26
  *         self.func = func
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -1528,7 +1528,7 @@ static void __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_2__dealloc__
   __Pyx_RefNannyFinishContext();
 }
 
-/* "compiledtrees/_compiled.pyx":33
+/* "compiledtrees/_compiled.pyx":32
  *     @cython.boundscheck(False)
  *     @cython.wraparound(False)
  *     def predict(self,             # <<<<<<<<<<<<<<
@@ -1564,11 +1564,11 @@ static PyObject *__pyx_pw_13compiledtrees_9_compiled_17CompiledPredictor_5predic
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_output)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("predict", 1, 2, 2, 1); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("predict", 1, 2, 2, 1); __PYX_ERR(0, 32, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "predict") < 0)) __PYX_ERR(0, 33, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "predict") < 0)) __PYX_ERR(0, 32, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -1581,14 +1581,14 @@ static PyObject *__pyx_pw_13compiledtrees_9_compiled_17CompiledPredictor_5predic
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("predict", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 33, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("predict", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 32, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("compiledtrees._compiled.CompiledPredictor.predict", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_X), __pyx_ptype_5numpy_ndarray, 1, "X", 0))) __PYX_ERR(0, 34, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_output), __pyx_ptype_5numpy_ndarray, 1, "output", 0))) __PYX_ERR(0, 35, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_X), __pyx_ptype_5numpy_ndarray, 1, "X", 0))) __PYX_ERR(0, 33, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_output), __pyx_ptype_5numpy_ndarray, 1, "output", 0))) __PYX_ERR(0, 34, __pyx_L1_error)
   __pyx_r = __pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_4predict(((struct __pyx_obj_13compiledtrees_9_compiled_CompiledPredictor *)__pyx_v_self), __pyx_v_X, __pyx_v_output);
 
   /* function exit code */
@@ -1625,16 +1625,16 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_4predic
   __pyx_pybuffernd_output.rcbuffer = &__pyx_pybuffer_output;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_DTYPE_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 33, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_DTYPE_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 32, __pyx_L1_error)
   }
   __pyx_pybuffernd_X.diminfo[0].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_X.diminfo[0].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_X.diminfo[1].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_X.diminfo[1].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[1];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_output.rcbuffer->pybuffer, (PyObject*)__pyx_v_output, &__Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_DOUBLE_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 33, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_output.rcbuffer->pybuffer, (PyObject*)__pyx_v_output, &__Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_DOUBLE_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 32, __pyx_L1_error)
   }
   __pyx_pybuffernd_output.diminfo[0].strides = __pyx_pybuffernd_output.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_output.diminfo[0].shape = __pyx_pybuffernd_output.rcbuffer->pybuffer.shape[0];
 
-  /* "compiledtrees/_compiled.pyx":36
+  /* "compiledtrees/_compiled.pyx":35
  *                 np.ndarray[DTYPE_t, ndim=2, mode='c'] X,
  *                 np.ndarray[DOUBLE_t, ndim=1, mode='c'] output):
  *         cdef Py_ssize_t num_samples = X.shape[0]             # <<<<<<<<<<<<<<
@@ -1643,7 +1643,7 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_4predic
  */
   __pyx_v_num_samples = (__pyx_v_X->dimensions[0]);
 
-  /* "compiledtrees/_compiled.pyx":37
+  /* "compiledtrees/_compiled.pyx":36
  *                 np.ndarray[DOUBLE_t, ndim=1, mode='c'] output):
  *         cdef Py_ssize_t num_samples = X.shape[0]
  *         for i in range(num_samples):             # <<<<<<<<<<<<<<
@@ -1654,7 +1654,7 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_4predic
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "compiledtrees/_compiled.pyx":38
+    /* "compiledtrees/_compiled.pyx":37
  *         cdef Py_ssize_t num_samples = X.shape[0]
  *         for i in range(num_samples):
  *             output[i] = ((<DOUBLE_t (*)(DTYPE_t*)> self.func))(&X[i, 0])             # <<<<<<<<<<<<<<
@@ -1666,7 +1666,7 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_4predic
     *__Pyx_BufPtrCContig1d(__pyx_t_13compiledtrees_9_compiled_DOUBLE_t *, __pyx_pybuffernd_output.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_output.diminfo[0].strides) = ((__pyx_t_13compiledtrees_9_compiled_DOUBLE_t (*)(__pyx_t_13compiledtrees_9_compiled_DTYPE_t *))__pyx_v_self->func)((&(*__Pyx_BufPtrCContig2d(__pyx_t_13compiledtrees_9_compiled_DTYPE_t *, __pyx_pybuffernd_X.rcbuffer->pybuffer.buf, __pyx_t_3, __pyx_pybuffernd_X.diminfo[0].strides, __pyx_t_4, __pyx_pybuffernd_X.diminfo[1].strides))));
   }
 
-  /* "compiledtrees/_compiled.pyx":39
+  /* "compiledtrees/_compiled.pyx":38
  *         for i in range(num_samples):
  *             output[i] = ((<DOUBLE_t (*)(DTYPE_t*)> self.func))(&X[i, 0])
  *         return output             # <<<<<<<<<<<<<<
@@ -1676,7 +1676,7 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_4predic
   __pyx_r = ((PyObject *)__pyx_v_output);
   goto __pyx_L0;
 
-  /* "compiledtrees/_compiled.pyx":33
+  /* "compiledtrees/_compiled.pyx":32
  *     @cython.boundscheck(False)
  *     @cython.wraparound(False)
  *     def predict(self,             # <<<<<<<<<<<<<<
@@ -3967,8 +3967,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 20, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 36, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 799, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -3979,25 +3979,25 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "compiledtrees/_compiled.pyx":20
- *         cdef void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL)
+  /* "compiledtrees/_compiled.pyx":19
+ *         cdef void* handle = dlopen(filename, RTLD_NOW)
  *         if handle == NULL:
  *             raise ValueError("Could not find compiled evaluation file")             # <<<<<<<<<<<<<<
  *         self.handle = handle
  *         cdef void* func = dlsym(self.handle, symbol)
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Could_not_find_compiled_evaluati); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Could_not_find_compiled_evaluati); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "compiledtrees/_compiled.pyx":24
+  /* "compiledtrees/_compiled.pyx":23
  *         cdef void* func = dlsym(self.handle, symbol)
  *         if func == NULL:
  *             raise ValueError("Could not find compiled evaluation function in file")             # <<<<<<<<<<<<<<
  *         self.func = func
  * 
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Could_not_find_compiled_evaluati_2); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Could_not_find_compiled_evaluati_2); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
@@ -4164,9 +4164,9 @@ PyMODINIT_FUNC PyInit__compiled(void)
   /*--- Variable export code ---*/
   /*--- Function export code ---*/
   /*--- Type init code ---*/
-  if (PyType_Ready(&__pyx_type_13compiledtrees_9_compiled_CompiledPredictor) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_13compiledtrees_9_compiled_CompiledPredictor) < 0) __PYX_ERR(0, 15, __pyx_L1_error)
   __pyx_type_13compiledtrees_9_compiled_CompiledPredictor.tp_print = 0;
-  if (PyObject_SetAttrString(__pyx_m, "CompiledPredictor", (PyObject *)&__pyx_type_13compiledtrees_9_compiled_CompiledPredictor) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "CompiledPredictor", (PyObject *)&__pyx_type_13compiledtrees_9_compiled_CompiledPredictor) < 0) __PYX_ERR(0, 15, __pyx_L1_error)
   __pyx_ptype_13compiledtrees_9_compiled_CompiledPredictor = &__pyx_type_13compiledtrees_9_compiled_CompiledPredictor;
   /*--- Type import code ---*/
   __pyx_ptype_7cpython_4type_type = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "type", 

@@ -79,6 +79,31 @@ class TestCompiledTrees(unittest.TestCase):
         for cls in REGRESSORS:
             assert_equal_predictions(cls, X, y)
 
+    def test_few_compiled(self):
+        num_features = 20
+        num_examples = 1000
+
+        X1 = np.random.normal(size=(num_examples, num_features))
+        X1 = X1.astype(np.float32)
+        y1 = np.random.normal(size=num_examples)
+
+        X2 = np.random.normal(size=(num_examples, num_features))
+        X2 = X2.astype(np.float32)
+        y2 = np.random.normal(size=num_examples)
+
+        rf1 = ensemble.RandomForestRegressor()
+        rf1.fit(X1,y1)
+
+        rf2 = ensemble.RandomForestRegressor()
+        rf2.fit(X2,y2)
+
+        rf1_compiled = CompiledRegressionPredictor(rf1)
+        rf2_compiled = CompiledRegressionPredictor(rf2)
+
+        assert_array_almost_equal(rf1.predict(X1), rf1_compiled.predict(X1), decimal=10)
+        assert_array_almost_equal(rf2.predict(X2), rf2_compiled.predict(X2), decimal=10)
+
+
     def test_predictions_with_invalid_input(self):
         num_features = 100
         num_examples = 100
