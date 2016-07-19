@@ -10,7 +10,7 @@ import numpy as np
 import unittest
 import tempfile
 import pickle
-import cPickle
+from six.moves import cPickle
 
 REGRESSORS = {
     ensemble.GradientBoostingRegressor,
