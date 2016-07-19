@@ -28,7 +28,7 @@ class CodeGenerator(object):
         return self._file
 
     def write(self, line):
-        self._file.write("  " * self._indent + line + "\n")
+        self._file.write(("  " * self._indent + line + "\n").encode("ascii"))
 
     @contextlib.contextmanager
     def bracketed(self, preamble, postamble):
@@ -181,7 +181,7 @@ def _call(args):
 def compile_code_to_object(files, n_jobs=1):
     # if ther is a single file then create single element list
     # unicode for filename; name attribute for file-like objects
-    if type(files) is unicode or hasattr(files, 'name'):
+    if isinstance(files, str) or hasattr(files, 'name'):
         files = [files]
 
     so_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=True)
