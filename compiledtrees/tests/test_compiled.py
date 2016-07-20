@@ -10,7 +10,7 @@ import numpy as np
 import unittest
 import tempfile
 import pickle
-from six.moves import cPickle
+from six.moves import cPickle, zip
 
 REGRESSORS = {
     ensemble.GradientBoostingRegressor,
@@ -30,7 +30,7 @@ def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = itertools.tee(iterable)
     next(b, None)
-    return itertools.izip(a, b)
+    return zip(a, b)
 
 
 def assert_equal_predictions(cls, X, y):
@@ -40,15 +40,15 @@ def assert_equal_predictions(cls, X, y):
 
     with tempfile.NamedTemporaryFile(delete=False) as tf:
         pickle.dump(compiled, tf)
-    depickled = pickle.load(open(tf.name))
+    depickled = pickle.load(open(tf.name, 'rb'))
 
     with tempfile.NamedTemporaryFile(delete=False) as tf:
         pickle.dump(depickled, tf)
-    dedepickled = pickle.load(open(tf.name))
+    dedepickled = pickle.load(open(tf.name, 'rb'))
 
     with tempfile.NamedTemporaryFile(delete=False) as tf:
         cPickle.dump(compiled, tf)
-    decpickled = cPickle.load(open(tf.name))
+    decpickled = cPickle.load(open(tf.name, 'rb'))
 
     predictors = [clf, compiled, depickled, decpickled, dedepickled]
     predictions = [p.predict(X) for p in predictors]

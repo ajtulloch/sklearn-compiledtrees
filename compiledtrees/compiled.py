@@ -34,11 +34,11 @@ class CompiledRegressionPredictor(RegressorMixin):
         self._so_f = self._so_f_object.name
 
     def __getstate__(self):
-        return dict(n_features=self._n_features, so_f=open(self._so_f).read())
+        return dict(n_features=self._n_features, so_f=open(self._so_f, 'rb').read())
 
     def __setstate__(self, state):
         import tempfile
-        self._so_f_object = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=True)
+        self._so_f_object = tempfile.NamedTemporaryFile(mode='w+b', prefix='compiledtrees_', suffix='.so', delete=True)
         self._so_f_object.write(state["so_f"])
         self._so_f_object.flush()
         self._so_f = self._so_f_object.name
