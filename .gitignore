@@ -5,3 +5,4 @@ MANIFEST
 TARGETS
 *.pyc
 *.so
+.pytest_cache/

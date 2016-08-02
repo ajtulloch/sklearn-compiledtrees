@@ -56,7 +56,7 @@ install:
     - conda install -q  six numpy scikit-learn joblib nose
     - conda install -q -c msys2 m2w64-toolchain m2w64-dlfcn pywin32
     - pip install coverage codecov
-    - set "CXX=gcc -pthread"
+    - set "CXX=g++ -pthread"
     - python setup.py build_ext --inplace --compiler=mingw32 -llibdl
 
 build: false

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import six
+from multiprocessing import cpu_count
 
 from sklearn.base import RegressorMixin
 from sklearn.tree.tree import DecisionTreeRegressor, DTYPE, DOUBLE
@@ -133,7 +134,7 @@ class CompiledRegressionPredictor(RegressorMixin):
                         for e in np.asarray(clf.estimators_).flat))
         return False
 
-    def predict(self, X):
+    def predict(self, X, n_jobs=1):
         """Predict regression target for X.
 
         Parameters
@@ -154,6 +155,10 @@ class CompiledRegressionPredictor(RegressorMixin):
             raise ValueError(
                 "Input must be 2-dimensional (n_samples, n_features), "
                 "not {}".format(X.shape))
+        if n_jobs < 0:  # toggle autodetecting of CPUs in joblib convention
+            n_jobs = max(cpu_count() + 1 + n_jobs, 1)
+        elif n_jobs > cpu_count():  # prevent overcommiting
+            n_jobs = cpu_count()
 
         n_samples, n_features = X.shape
         if self._n_features != n_features:
@@ -163,4 +168,4 @@ class CompiledRegressionPredictor(RegressorMixin):
                                  self._n_features, n_features))
 
         result = np.empty(n_samples, dtype=DOUBLE)
-        return self._evaluator.predict(X, result)
+        return self._evaluator.predict(X, result, n_jobs)
