@@ -11,7 +11,14 @@ import subprocess
 import tempfile
 from joblib import Parallel, delayed
 
-CXX_COMPILER = sysconfig.get_config_var('CXX')
+import platform
+
+if platform.system() == 'Windows':
+    CXX_COMPILER = os.environ['CXX']
+    delete_files = False
+else:
+    CXX_COMPILER = sysconfig.get_config_var('CXX')
+    delete_files = True
 
 EVALUATE_FN_NAME = "evaluate"
 ALWAYS_INLINE = "__attribute__((__always_inline__))"
@@ -19,7 +26,7 @@ ALWAYS_INLINE = "__attribute__((__always_inline__))"
 
 class CodeGenerator(object):
     def __init__(self):
-        self._file = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.cpp', delete=True)
+        self._file = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.cpp', delete=delete_files)
         self._indent = 0
 
     @property
@@ -169,14 +176,17 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
     return tree_files + [gen.file]
 
 def _compile(cpp_f):
-    o_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.o', delete=True)
+    o_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.o', delete=delete_files)
+    if platform.system() == 'Windows':
+        o_f.close()
     _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, "-O3", "-pipe"])
     return o_f
 
 def _call(args):
     DEVNULL = open(os.devnull, 'w')
+    print(" ".join(args))
     subprocess.check_call(" ".join(args),
-                          shell=True, stdout=DEVNULL, stderr=DEVNULL)
+                          shell=True)
 
 def compile_code_to_object(files, n_jobs=1):
     # if ther is a single file then create single element list
@@ -184,9 +194,13 @@ def compile_code_to_object(files, n_jobs=1):
     if isinstance(files, str) or hasattr(files, 'name'):
         files = [files]
 
-    so_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=True)
+    so_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=delete_files)
     o_files = Parallel(n_jobs=n_jobs, backend='threading')(delayed(_compile)(f.name) for f in files)
+    if platform.system() == 'Windows':
+        so_f.close()
     # link trees
-    _call([CXX_COMPILER, "-shared"] + [f.name for f in o_files] + ["-fPIC",
-        "-flto", "-o", so_f.name, "-O3", "-pipe"])
+    _call([CXX_COMPILER, "-shared"] +
+          [f.name for f in o_files] +
+          ["-fPIC", "-flto", "-o", so_f.name, "-O3", "-pipe"])
+
     return so_f
