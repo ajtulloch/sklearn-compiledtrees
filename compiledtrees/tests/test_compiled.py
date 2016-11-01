@@ -104,6 +104,20 @@ class TestCompiledTrees(unittest.TestCase):
         assert_array_almost_equal(rf1.predict(X1), rf1_compiled.predict(X1), decimal=10)
         assert_array_almost_equal(rf2.predict(X2), rf2_compiled.predict(X2), decimal=10)
 
+    def test_many_trees(self):
+        num_features = 20
+        num_examples = 1000
+
+        X1 = np.random.normal(size=(num_examples, num_features))
+        X1 = X1.astype(np.float32)
+        y1 = np.random.normal(size=num_examples)
+
+        rf1 = ensemble.RandomForestRegressor(n_estimators=500, max_depth=2)
+        rf1.fit(X1,y1)
+
+        rf1_compiled = CompiledRegressionPredictor(rf1)
+        assert_array_almost_equal(rf1.predict(X1), rf1_compiled.predict(X1), decimal=10)
+
     def test_predictions_with_invalid_input(self):
         num_features = 100
         num_examples = 100
