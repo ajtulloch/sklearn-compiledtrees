@@ -14,7 +14,7 @@ from joblib import Parallel, delayed
 import platform
 
 if platform.system() == 'Windows':
-    CXX_COMPILER = os.environ['CXX']
+    CXX_COMPILER = os.environ['CXX'] if 'CXX' in os.environ else None
     delete_files = False
 else:
     CXX_COMPILER = sysconfig.get_config_var('CXX')
@@ -176,6 +176,8 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
     return tree_files + [gen.file]
 
 def _compile(cpp_f):
+    if CXX_COMPILER is None:
+        raise Exception("CXX compiler was not found. You should set CXX environmental variable")
     o_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.o', delete=delete_files)
     if platform.system() == 'Windows':
         o_f.close()
@@ -184,7 +186,6 @@ def _compile(cpp_f):
 
 def _call(args):
     DEVNULL = open(os.devnull, 'w')
-    print(" ".join(args))
     subprocess.check_call(" ".join(args),
                           shell=True, stdout=DEVNULL, stderr=DEVNULL)
 
