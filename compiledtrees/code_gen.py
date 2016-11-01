@@ -186,7 +186,7 @@ def _call(args):
     DEVNULL = open(os.devnull, 'w')
     print(" ".join(args))
     subprocess.check_call(" ".join(args),
-                          shell=True)
+                          shell=True, stdout=DEVNULL, stderr=DEVNULL)
 
 def compile_code_to_object(files, n_jobs=1):
     # if ther is a single file then create single element list
@@ -194,13 +194,36 @@ def compile_code_to_object(files, n_jobs=1):
     if isinstance(files, str) or hasattr(files, 'name'):
         files = [files]
 
-    so_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=delete_files)
+    # Close files on Windows to avoid permission errors
+    if platform.system() == 'Windows':
+        for f in files:
+            f.close()
+
     o_files = Parallel(n_jobs=n_jobs, backend='threading')(delayed(_compile)(f.name) for f in files)
+
+    so_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=delete_files)
+    # Close files on Windows to avoid permission errors
     if platform.system() == 'Windows':
         so_f.close()
+
     # link trees
-    _call([CXX_COMPILER, "-shared"] +
-          [f.name for f in o_files] +
-          ["-fPIC", "-flto", "-o", so_f.name, "-O3", "-pipe"])
+    if platform.system() == 'Windows':
+        # a hack to overcome large RFs on windows and CMD 9182 chaacters limit
+        list_ofiles = tempfile.NamedTemporaryFile(prefix='list_ofiles_', delete=delete_files)
+        for f in o_files:
+            list_ofiles.write(f.name.replace('\\', '\\\\') + "\r")
+        list_ofiles.close()
+        _call([CXX_COMPILER, "-shared", "@%s" % list_ofiles.name, "-fPIC", "-flto", "-o", so_f.name, "-O3", "-pipe"])
+
+        # cleanup files
+        for f in o_files:
+            os.unlink(f.name)
+        for f in files:
+            os.unlink(f.name)
+        os.unlink(list_ofiles.name)
+    else:
+        _call([CXX_COMPILER, "-shared"] +
+              [f.name for f in o_files]  +
+              ["-fPIC", "-flto", "-o", so_f.name, "-O3", "-pipe"])
 
     return so_f
