@@ -26,7 +26,7 @@ setup(
     configuration=configuration,
     description='Compiled scikit-learn decision trees for faster evaluation',
     packages=['compiledtrees'],
-    install_requires=['joblib'],
+    install_requires=['joblib', 'scikit-learn', 'six', 'numpy'],
     license='MIT License',
     platforms='Any',
     long_description=open('README.rst').read(),
