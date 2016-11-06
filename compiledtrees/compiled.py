@@ -130,6 +130,8 @@ class CompiledRegressionPredictor(RegressorMixin):
         y: array of shape = [n_samples]
             The predicted values.
         """
+        if not X.flags['C_CONTIGUOUS']:
+            X = np.ascontiguousarray(X)
         if X.dtype != DTYPE:
             X = X.astype(DTYPE)
         if X.ndim != 2:
