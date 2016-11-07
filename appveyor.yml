@@ -49,7 +49,7 @@ install:
     - activate test_env
     - conda install -q  six numpy scikit-learn joblib nose
     - conda install -q -c mwojcikowski mingwpy dlfcn
-    - pip install coverage coveralls
+    - pip install coverage codecov
     - set "CC=gcc"
     - set "CXX=gcc -pthread"
     - python setup.py build_ext --inplace --compiler=mingw32 -llibdl
@@ -62,4 +62,4 @@ build: false
 
 test_script:
     - nosetests -s -v --with-coverage compiledtrees
-    - coveralls
+    - codecov

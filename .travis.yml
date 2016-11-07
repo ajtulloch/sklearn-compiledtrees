@@ -17,8 +17,10 @@ install:
     - python setup.py build_ext --inplace
     - if [ "${COVERAGE}" == "--with-coverage" ]; then pip install coverage; fi
     - if [ "${COVERAGE}" == "--with-coverage" ]; then pip install coveralls; fi
+    - pip install codecov
 script:
     - if [ "${COVERAGE}" == "--with-coverage" ]; then make test-coverage; fi
     - if [ "${COVERAGE}" != "--with-coverage" ]; then make test; fi
 after_success:
     - if [ "${COVERAGE}" == "--with-coverage" ]; then coveralls; fi
+    - codecov
