@@ -103,7 +103,6 @@ class TestCompiledTrees(unittest.TestCase):
         assert_array_almost_equal(rf1.predict(X1), rf1_compiled.predict(X1), decimal=10)
         assert_array_almost_equal(rf2.predict(X2), rf2_compiled.predict(X2), decimal=10)
 
-
     def test_predictions_with_invalid_input(self):
         num_features = 100
         num_examples = 100
@@ -118,3 +117,21 @@ class TestCompiledTrees(unittest.TestCase):
             assert_raises(ValueError, compiled.predict,
                           np.resize(X, (1, num_features, num_features)))
             assert_allclose(compiled.score(X, y), clf.score(X, y))
+
+    def test_predictions_with_non_contiguous_input(self):
+        num_features = 100
+        num_examples = 100
+        X = np.random.normal(size=(num_features, num_examples)).T
+        X = X.astype(np.float32)
+        y = np.random.normal(size=num_examples)
+
+        self.assertFalse(X.flags['C_CONTIGUOUS'])
+
+        rf = ensemble.RandomForestRegressor()
+        rf.fit(X,y)
+        rf_compiled = CompiledRegressionPredictor(rf)
+
+        try:
+            rf_compiled.predict(X)
+        except ValueError as e:
+            self.fail("predict(X) raised ValueError")
