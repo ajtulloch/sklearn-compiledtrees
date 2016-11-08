@@ -119,6 +119,29 @@ class TestCompiledTrees(unittest.TestCase):
                           np.resize(X, (1, num_features, num_features)))
             assert_allclose(compiled.score(X, y), clf.score(X, y))
 
+    def test_float32_and_float_64_predictions_are_equal(self):
+        num_features = 100
+        num_examples = 100
+
+        X = np.random.normal(size=(num_features, num_examples))
+        X_32 = X.astype(np.float32)
+        X_64 = X.astype(np.float64)
+        y = np.random.normal(size=num_examples)
+
+        # fit on X_32
+        rf = ensemble.RandomForestRegressor()
+        rf.fit(X_32, y)
+        rf = CompiledRegressionPredictor(rf)
+
+        assert_array_equal(rf.predict(X_32), rf.predict(X_64))
+
+        # fit on X_64
+        rf = ensemble.RandomForestRegressor()
+        rf.fit(X_64, y)
+        rf = CompiledRegressionPredictor(rf)
+
+        assert_array_equal(rf.predict(X_32), rf.predict(X_64))
+
     def test_predictions_with_non_contiguous_input(self):
         num_features = 100
         num_examples = 100
@@ -140,7 +163,4 @@ class TestCompiledTrees(unittest.TestCase):
 
         X_contiguous = np.ascontiguousarray(X_non_contiguous)
         self.assertTrue(X_contiguous.flags['C_CONTIGUOUS'])
-        assert_array_equal(rf_compiled.predict(X_non_contiguous), rf_compiled.predict(X_contiguous))
-
-        X_contiguous = X_contiguous.astype(np.float64)
         assert_array_equal(rf_compiled.predict(X_non_contiguous), rf_compiled.predict(X_contiguous))
