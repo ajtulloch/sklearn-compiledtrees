@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 from sklearn import ensemble, tree
 from compiledtrees.compiled import CompiledRegressionPredictor
 from sklearn.utils.testing import \
-    assert_array_almost_equal, assert_raises, assert_equal, assert_allclose
+    assert_array_almost_equal, assert_raises, assert_equal, assert_allclose, \
+    assert_array_equal
 import numpy as np
 import unittest
 import tempfile
@@ -121,17 +122,25 @@ class TestCompiledTrees(unittest.TestCase):
     def test_predictions_with_non_contiguous_input(self):
         num_features = 100
         num_examples = 100
-        X = np.random.normal(size=(num_features, num_examples)).T
-        X = X.astype(np.float32)
+
+        X_non_contiguous = np.random.normal(size=(num_features, num_examples)).T
+        X_non_contiguous = X_non_contiguous.astype(np.float32)
+        self.assertFalse(X_non_contiguous.flags['C_CONTIGUOUS'])
+
         y = np.random.normal(size=num_examples)
 
-        self.assertFalse(X.flags['C_CONTIGUOUS'])
-
         rf = ensemble.RandomForestRegressor()
-        rf.fit(X,y)
+        rf.fit(X_non_contiguous, y)
         rf_compiled = CompiledRegressionPredictor(rf)
 
         try:
-            rf_compiled.predict(X)
+            rf_compiled.predict(X_non_contiguous)
         except ValueError as e:
             self.fail("predict(X) raised ValueError")
+
+        X_contiguous = np.ascontiguousarray(X_non_contiguous)
+        self.assertTrue(X_contiguous.flags['C_CONTIGUOUS'])
+        assert_array_equal(rf_compiled.predict(X_non_contiguous), rf_compiled.predict(X_contiguous))
+
+        X_contiguous = X_contiguous.astype(np.float64)
+        assert_array_equal(rf_compiled.predict(X_non_contiguous), rf_compiled.predict(X_contiguous))
