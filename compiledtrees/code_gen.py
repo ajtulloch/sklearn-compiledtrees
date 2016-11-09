@@ -9,6 +9,7 @@ import contextlib
 import os
 import subprocess
 import tempfile
+import sys
 from joblib import Parallel, delayed
 
 CXX_COMPILER = sysconfig.get_config_var('CXX')
@@ -19,7 +20,14 @@ ALWAYS_INLINE = "__attribute__((__always_inline__))"
 
 class CodeGenerator(object):
     def __init__(self):
-        self._file = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.cpp', delete=True)
+        try:
+            self._file = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.cpp', delete=True)
+        except OSError as e:
+            if e.errno == 24:
+                print("Too many open files. Increase limit to 2 * n_trees + 2" \
+                    + "(unix / mac: ulimit -n [limit], windows: http://bit.ly/2fAKnz0)", file=sys.stderr)
+            raise e
+
         self._indent = 0
 
     @property
