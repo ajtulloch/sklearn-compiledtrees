@@ -1,7 +1,7 @@
 Scikit-Learn Compiled Trees
 ===========================
 
-|Build Status| 
+|Build Status|
 |PyPI|
 
 Installation
@@ -12,6 +12,24 @@ Released under the MIT License.
 .. code:: bash
 
     pip install sklearn-compiledtrees
+
+Or to get the latest development version:
+
+.. code:: bash
+
+    pip install git+https://github.com/ajtulloch/sklearn-compiledtrees.git
+
+sklearn-compiledtrees has been tested to work on OS X, Linux and Windows.
+
+Installing on Windows requires MinGW and [dlfcn-win32](https://github.com/dlfcn-win32/dlfcn-win32),
+setting `CXX` environment variable (`set "CXX=gcc -pthread"` for CMD),
+and manual installation from source direcory.
+
+.. code:: bash
+
+    python setup.py build_ext --compiler=mingw32 -llibdl
+    python setup.py install
+
 
 Rationale
 ---------
@@ -33,9 +51,6 @@ pedagogical explanation and more benchmarks in C++.
 This package implements compiled decision tree evaluation for the simple
 case of a single-output regression tree or ensemble.
 
-It has been tested to work on both OS X and Linux. We do not currently
-support Windows platforms for compiled evaluation, although this should
-not be a signficant amount of work.
 
 Usage
 -----
@@ -90,7 +105,7 @@ Graphs
 
 .. |Build Status| image:: https://travis-ci.org/ajtulloch/sklearn-compiledtrees.png?branch=master
    :target: https://travis-ci.org/ajtulloch/sklearn-compiledtrees
-   
+
 .. |PyPI| image:: https://badge.fury.io/py/sklearn-compiledtrees.png
    :target: http://badge.fury.io/py/sklearn-compiledtrees
 

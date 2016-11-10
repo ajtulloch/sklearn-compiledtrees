@@ -12,6 +12,12 @@ from compiledtrees import _compiled
 from compiledtrees import code_gen as cg
 import numpy as np
 
+import platform
+
+if platform.system() == 'Windows':
+    delete_files = False
+else:
+    delete_files = True
 
 class CompiledRegressionPredictor(RegressorMixin):
     """Class to construct a compiled predictor from a previously trained
@@ -38,10 +44,12 @@ class CompiledRegressionPredictor(RegressorMixin):
 
     def __setstate__(self, state):
         import tempfile
-        self._so_f_object = tempfile.NamedTemporaryFile(mode='w+b', prefix='compiledtrees_', suffix='.so', delete=True)
+        self._so_f_object = tempfile.NamedTemporaryFile(mode='w+b', prefix='compiledtrees_', suffix='.so', delete=delete_files)
         self._so_f_object.write(state["so_f"])
         self._so_f_object.flush()
         self._so_f = self._so_f_object.name
+        if platform.system() == 'Windows':
+            self._so_f_object.close()
         self._n_features = state["n_features"]
         self._evaluator = _compiled.CompiledPredictor(
             self._so_f_object.name.encode("ascii"),
