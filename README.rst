@@ -21,7 +21,7 @@ Or to get the latest development version:
 
 sklearn-compiledtrees has been tested to work on OS X, Linux and Windows.
 
-Installing on Windows requires MinGW and [dlfcn-win32](https://github.com/dlfcn-win32/dlfcn-win32),
+Installing on Windows requires MinGW and dlfcn-win32_,
 setting `CXX` environment variable (`set "CXX=gcc -pthread"` for CMD),
 and manual installation from source direcory.
 
@@ -108,6 +108,8 @@ Graphs
 
 .. |PyPI| image:: https://badge.fury.io/py/sklearn-compiledtrees.png
    :target: http://badge.fury.io/py/sklearn-compiledtrees
+
+.. _dlfcn-win32: https://github.com/dlfcn-win32/dlfcn-win32
 
 .. |timings3907426606273805268| image:: https://f.cloud.github.com/assets/1121581/2453407/c70a64bc-aedd-11e3-94c7-519411ae6276.png
    :width: 500px
