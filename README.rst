@@ -22,7 +22,8 @@ Or to get the latest development version:
 sklearn-compiledtrees has been tested to work on OS X, Linux and Windows.
 
 Installing on Windows requires MinGW and [dlfcn-win32](https://github.com/dlfcn-win32/dlfcn-win32),
-and manual installation from source direcory:
+setting `CXX` environment variable (`set "CXX=gcc -pthread"` for CMD),
+and manual installation from source direcory.
 
 .. code:: bash
 
