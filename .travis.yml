@@ -1,9 +1,8 @@
 sudo: false
 language: python
-env:
-    - COVERAGE=--with-coverage
 python:
     - "2.7"
+    - "3.4"
     - "3.5"
 before_install:
     - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
@@ -15,12 +14,8 @@ before_install:
     - conda install --yes scipy nose scikit-learn joblib six
 install:
     - python setup.py build_ext --inplace
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then pip install coverage; fi
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then pip install coveralls; fi
-    - pip install codecov
+    - pip install coverage codecov
 script:
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then make test-coverage; fi
-    - if [ "${COVERAGE}" != "--with-coverage" ]; then make test; fi
+    - make test-coverage
 after_success:
-    - if [ "${COVERAGE}" == "--with-coverage" ]; then coveralls; fi
     - codecov

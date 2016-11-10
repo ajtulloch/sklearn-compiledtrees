@@ -15,10 +15,10 @@ environment:
     #  PYTHON_ARCH: "32"
     #  CONDA_PY: "34"
 
-    # - PYTHON: "C:\\Python34_64"
-    #   PYTHON_VERSION: "3.4"
-    #   PYTHON_ARCH: "64"
-    #   CONDA_PY: "34"
+    - PYTHON: "C:\\Python34_64"
+      PYTHON_VERSION: "3.4"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "34"
 
     #- PYTHON: "C:\\Python35_32"
     #  PYTHON_VERSION: "3.5"
@@ -50,13 +50,8 @@ install:
     - conda install -q  six numpy scikit-learn joblib nose
     - conda install -q -c mwojcikowski mingwpy dlfcn
     - pip install coverage codecov
-    - set "CC=gcc"
     - set "CXX=gcc -pthread"
     - python setup.py build_ext --inplace --compiler=mingw32 -llibdl
-
-    - set "CI_NAME=appveyor"
-    - set "CI_BRANCH=%APPVEYOR_REPO_BRANCH%"
-
 
 build: false
 
