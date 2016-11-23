@@ -1,10 +1,12 @@
 from sklearn import tree
+from sklearn.base import ClassifierMixin
+
 import copy
 import numpy as np
 import enum
 import collections
 import networkx as nx
-from sklearn.base import ClassifierMixin
+
 
 
 class Direction(enum.Enum):
@@ -129,13 +131,19 @@ def collapse_cfg(cfg, node_ret_tys):
         if n in (reject_node, accept_node, exit_node):
             continue
 
-        (retval,) = node_ret_tys[n]
-        (decision,) = retval.args
-        target_node = accept_node if decision == 1 else reject_node
-        predecessors = cfg.predecessors(n)
-        for predecessor in predecessors:
-            cfg.add_edge(predecessor, target_node)
+        (leaf,) = node_ret_tys[n]
+        assert leaf in (accept, reject)
+        leaf_node = accept_node if leaf == accept else reject_node
+        # Add source nodes
+        for (src, dst, direction) in cfg.edges(data='data'):
+            if dst != n:
+                continue
+            cfg.add_edge(src, leaf_node, data=direction)
         cfg.remove_node(n)
+        print("Removing: ", n)
+        for (src, dst, direction) in cfg.edges(data='data'):
+            if src == n or dst == n:
+                raise Exception("WTF")
     return cfg
 
 
@@ -153,13 +161,7 @@ def construct_fragments(cfg, node_ret_tys):
             fragments[n] = [bpf_stmt(BPF_RET | BPF_K, decision)]
             continue
         if ty == NodeTy.BRANCH:
-            if n in node_ret_tys and len(node_ret_tys[n]) == 1:
-                # Branch - can just return threshold value
-                (retval,) = node_ret_tys[n]
-                (decision,) = retval.args
-                fragments[n] = [bpf_stmt(BPF_RET | BPF_K, decision)]
-                continue
-
+            assert n in node_ret_tys and len(node_ret_tys[n]) > 1
             (feature, threshold) = cfg.node[n]['ann'].args
             threshold = threshold
 
@@ -258,8 +260,9 @@ class BpfClassifierPredictor(ClassifierMixin):
 
         cfg = construct_cfg(clf.tree_, decision_threshold)
         node_ret_tys = construct_node_ret_tys(cfg)
+        cfg = collapse_cfg(cfg, node_ret_tys)
         fragments = construct_fragments(cfg, node_ret_tys)
-        # fragments = dce(cfg, fragments)
+        fragments = dce(cfg, fragments)
         inss, label_offsets = linearize(cfg, fragments)
         assembled_inss = assemble(inss, label_offsets)
         self.assembled_ins = assembled_inss

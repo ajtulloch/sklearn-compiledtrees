@@ -21,7 +21,7 @@ REGRESSORS = {
 CLASSIFIERS = {
     # ensemble.GradientBoostingClassifier,
     # ensemble.RandomForestClassifier,
-    lambda: tree.DecisionTreeClassifier(max_depth=2, random_state=3),
+    lambda: tree.DecisionTreeClassifier(max_depth=10, random_state=3),
 }
 
 
@@ -272,17 +272,48 @@ class TestBpfDeepUtils(unittest.TestCase):
              18: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))])})
 
     def test_collapse_cfg(self):
-        pass
-        # cfg = bpf.construct_cfg(self.t, 0.5)
-        # node_ret_tys = bpf.construct_node_ret_tys(cfg)
-        # ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
-        # self.assertEqual(
-        #     sorted(ccfg.nodes(data=True)), sorted(cfg.nodes(data=True)))
-        # self.assertEqual(ccfg.edges(data=True), [])
+        cfg = bpf.construct_cfg(self.t, 0.5)
+        node_ret_tys = bpf.construct_node_ret_tys(cfg)
+        ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
+        self.assertEqual(
+            sorted(ccfg.nodes(data=True)),
+            [
+                (-3, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))}),
+                (-2, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))}),
+                (-1, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
+                (0, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(5, 94.0))}),
+                (1, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(6, 10.5))}),
+                (2, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(8, -75.5))}),
+                (9, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(0, -48.5))}),
+                (13, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(9, 33.5))}),
+                (16, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(2, 45.5))}),
+                (17, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(1, 77.0))})
+            ])
+        self.assertEqual(
+            ccfg.edges(data=True),
+            [
+                (0, 16, {'data': bpf.Direction.RIGHT}),
+                (0, 1, {'data': bpf.Direction.LEFT}),
+                (1, 9, {'data': bpf.Direction.RIGHT}),
+                (1, 2, {'data': bpf.Direction.LEFT}),
+                (2, -2, {'data': bpf.Direction.LEFT}),
+                (2, -3, {'data': bpf.Direction.RIGHT}),
+                (9, 13, {'data': bpf.Direction.RIGHT}),
+                (9, -2, {'data': bpf.Direction.LEFT}),
+                (13, -3, {'data': bpf.Direction.LEFT}),
+                (13, -2, {'data': bpf.Direction.RIGHT}),
+                (16, 17, {'data': bpf.Direction.LEFT}),
+                (16, -3, {'data': bpf.Direction.RIGHT}),
+                (17, -3, {'data': bpf.Direction.LEFT}),
+                (17, -2, {'data': bpf.Direction.RIGHT}),
+                (-2, -1, {}),
+                (-3, -1, {})
+            ])
 
     def test_construct_fragments(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
+        cfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(cfg, node_ret_tys)
         self.assertEqual(
             fragments,
@@ -295,24 +326,21 @@ class TestBpfDeepUtils(unittest.TestCase):
                 1: [bpf.Ins(code=32, jt=0, jf=0, k=6),
                     bpf.Ins(code=37, jt=9, jf=2, k=10.5)],
                 2: [bpf.Ins(code=32, jt=0, jf=0, k=8),
-                    bpf.Ins(code=37, jt=6, jf=3, k=-75.5)],
-                3: [bpf.Ins(code=6, jt=0, jf=0, k=1)],
-                6: [bpf.Ins(code=6, jt=0, jf=0, k=0)],
+                    bpf.Ins(code=37, jt=-3, jf=-2, k=-75.5)],
                 9: [bpf.Ins(code=32, jt=0, jf=0, k=0),
-                    bpf.Ins(code=37, jt=13, jf=10, k=-48.5)],
-                10: [bpf.Ins(code=6, jt=0, jf=0, k=1)],
+                    bpf.Ins(code=37, jt=13, jf=-2, k=-48.5)],
                 13: [bpf.Ins(code=32, jt=0, jf=0, k=9),
                      bpf.Ins(code=37, jt=-2, jf=-3, k=33.5)],
                 16: [bpf.Ins(code=32, jt=0, jf=0, k=2),
                      bpf.Ins(code=37, jt=-3, jf=17, k=45.5)],
                 17: [bpf.Ins(code=32, jt=0, jf=0, k=1),
-                     bpf.Ins(code=37, jt=-2, jf=18, k=77.0)],
-                18: [bpf.Ins(code=6, jt=0, jf=0, k=0)]
+                     bpf.Ins(code=37, jt=-2, jf=-3, k=77.0)],
             })
 
     def test_dce(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
+        cfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(cfg, node_ret_tys)
         dead_fragments = copy.deepcopy(fragments)
         dead_fragments[50] = [None]
@@ -323,6 +351,7 @@ class TestBpfDeepUtils(unittest.TestCase):
     def test_linearize(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
+        cfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(cfg, node_ret_tys)
         fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(cfg, fragments)
@@ -335,45 +364,28 @@ class TestBpfDeepUtils(unittest.TestCase):
                 bpf.Ins(code=32, jt=0, jf=0, k=2),
                 bpf.Ins(code=37, jt=-3, jf=17, k=45.5),
                 bpf.Ins(code=32, jt=0, jf=0, k=1),
-                bpf.Ins(code=37, jt=-2, jf=18, k=77.0),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
+                bpf.Ins(code=37, jt=-2, jf=-3, k=77.0),
                 bpf.Ins(code=32, jt=0, jf=0, k=6),
                 bpf.Ins(code=37, jt=9, jf=2, k=10.5),
+                bpf.Ins(code=32, jt=0, jf=0, k=8),
+                bpf.Ins(code=37, jt=-3, jf=-2, k=-75.5),
                 bpf.Ins(code=32, jt=0, jf=0, k=0),
-                bpf.Ins(code=37, jt=13, jf=10, k=-48.5),
+                bpf.Ins(code=37, jt=13, jf=-2, k=-48.5),
                 bpf.Ins(code=32, jt=0, jf=0, k=9),
                 bpf.Ins(code=37, jt=-2, jf=-3, k=33.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=8),
-                bpf.Ins(code=37, jt=6, jf=3, k=-75.5),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
                 bpf.Ins(code=6, jt=0, jf=0, k=0),
                 bpf.Ins(code=6, jt=0, jf=0, k=1),
-                bpf.Ins(code=6, jt=0, jf=0, k=1),
-                bpf.Ins(code=6, jt=0, jf=0, k=1)
             ])
 
         self.assertEqual(
             label_offsets,
-            {
-                -3: 16,
-                -2: 19,
-                -1: 20,
-                0: 0,
-                1: 7,
-                2: 13,
-                3: 18,
-                6: 15,
-                9: 9,
-                10: 17,
-                13: 11,
-                16: 2,
-                17: 4,
-                18: 6
-            })
+            {-3: 14, -2: 15, -1: 16, 0: 0,
+             1: 6, 2: 8, 9: 10, 13: 12, 16: 2, 17: 4})
 
     def test_assemble(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
+        cfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(cfg, node_ret_tys)
         fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(cfg, fragments)
@@ -382,30 +394,27 @@ class TestBpfDeepUtils(unittest.TestCase):
             inss,
             [
                 bpf.Ins(code=32, jt=0, jf=0, k=5),
-                bpf.Ins(code=37, jt=0, jf=5, k=94.0),
+                bpf.Ins(code=37, jt=0, jf=4, k=94.0),
                 bpf.Ins(code=32, jt=0, jf=0, k=2),
-                bpf.Ins(code=37, jt=12, jf=0, k=45.5),
+                bpf.Ins(code=37, jt=10, jf=0, k=45.5),
                 bpf.Ins(code=32, jt=0, jf=0, k=1),
-                bpf.Ins(code=37, jt=13, jf=0, k=77.0),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
+                bpf.Ins(code=37, jt=9, jf=8, k=77.0),
                 bpf.Ins(code=32, jt=0, jf=0, k=6),
-                bpf.Ins(code=37, jt=0, jf=4, k=10.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=0),
-                bpf.Ins(code=37, jt=0, jf=6, k=-48.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=9),
-                bpf.Ins(code=37, jt=6, jf=3, k=33.5),
+                bpf.Ins(code=37, jt=2, jf=0, k=10.5),
                 bpf.Ins(code=32, jt=0, jf=0, k=8),
-                bpf.Ins(code=37, jt=0, jf=3, k=-75.5),
+                bpf.Ins(code=37, jt=4, jf=5, k=-75.5),
+                bpf.Ins(code=32, jt=0, jf=0, k=0),
+                bpf.Ins(code=37, jt=0, jf=3, k=-48.5),
+                bpf.Ins(code=32, jt=0, jf=0, k=9),
+                bpf.Ins(code=37, jt=1, jf=0, k=33.5),
                 bpf.Ins(code=6, jt=0, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=1),
-                bpf.Ins(code=6, jt=0, jf=0, k=1),
                 bpf.Ins(code=6, jt=0, jf=0, k=1)
             ])
 
     def test_interpret(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
+        cfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(cfg, node_ret_tys)
         fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(cfg, fragments)
@@ -438,7 +447,6 @@ class TestBpfClassifier(unittest.TestCase):
     def test_correct_predictions(self):
         num_features = 20
         num_examples = 1000
-        np.random.seed(0)
         X = np.random.random_integers(
             low=-100, high=100, size=(num_examples, num_features))
         y = np.random.choice([0, 1], size=num_examples)
