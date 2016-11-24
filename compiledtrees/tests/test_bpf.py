@@ -12,6 +12,10 @@ from sklearn.utils.testing import \
 import numpy as np
 import unittest
 
+import pprint
+import textwrap
+
+
 REGRESSORS = {
     # ensemble.GradientBoostingRegressor,
     # ensemble.RandomForestRegressor,
@@ -22,6 +26,7 @@ CLASSIFIERS = {
     # ensemble.GradientBoostingClassifier,
     # ensemble.RandomForestClassifier,
     lambda: tree.DecisionTreeClassifier(max_depth=10, random_state=3),
+    lambda: tree.DecisionTreeClassifier(max_depth=2, random_state=3),
 }
 
 
@@ -452,3 +457,272 @@ class TestBpfClassifier(unittest.TestCase):
         y = np.random.choice([0, 1], size=num_examples)
         for cls in CLASSIFIERS:
             assert_equal_predictions(cls, X, y)
+
+
+class TestBpfEnsembleUtils(unittest.TestCase):
+    bpf = True
+
+    def setUp(self):
+        self.maxDiff = 10000
+        import collections
+        T = collections.namedtuple(
+            'T',
+            ['children_left', 'children_right',
+             'feature', 'threshold', 'value'])
+        # Deliberately sparse
+        # 0 -> {4, 5}
+        self.ts = [
+            T(
+                children_left={0: 4, 4: -1, 5: -1},
+                children_right={0: 5},
+                feature={0: 10},
+                threshold={0: 23.4},
+                value={4: np.asarray([89, 880]), 5: np.asarray([605, 105])}
+            ),
+            T(
+                children_left={0: 4, 4: -1, 5: -1},
+                children_right={0: 5},
+                feature={0: 10},
+                threshold={0: 23.4},
+                value={4: np.asarray([89, 880]), 5: np.asarray([605, 105])}
+            ),
+        ]
+
+    def test_construct_cfg(self):
+        cfgs = [bpf.construct_cfg(t, 0.5) for t in self.ts]
+        for cfg in cfgs:
+            self.assertEqual(
+                cfg.edges(data=True),
+                [
+                    (0, -3, {'data': bpf.Direction.LEFT}),
+                    (0, -2, {'data': bpf.Direction.RIGHT}),
+                    (-2, -1, {}),
+                    (-3, -1, {})
+                ])
+
+        self.assertEqual(
+            cfg.nodes(data=True),
+            [
+                (0, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(10, 23.4))}),
+                (-2, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))}),
+                (-1, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
+                (-3, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))})
+            ])
+
+    def test_construct_node_ret_tys(self):
+        for t in self.ts:
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            self.assertEquals(
+                node_ret_tys,
+                {
+                    -3: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))]),
+                    -2: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
+                    0: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
+                            bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))])
+                })
+
+    def test_collapse_cfg(self):
+        for t in self.ts:
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
+            self.assertEqual(
+                sorted(ccfg.nodes(data=True)), sorted(cfg.nodes(data=True)))
+            self.assertEqual(ccfg.edges(data=True), cfg.edges(data=True))
+
+    def test_construct_fragments(self):
+        for t in self.ts:
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
+            fragments = bpf.construct_fragments(ccfg, node_ret_tys)
+            self.assertEqual(
+                fragments, {
+                    -3: [bpf.Ins(code=bpf.BPF_RET | bpf.BPF_K,
+                                 jt=0, jf=0, k=0)],
+                    -2: [bpf.Ins(code=bpf.BPF_RET | bpf.BPF_K,
+                                 jt=0, jf=0, k=1)],
+                    -1: [],
+                    0: [
+                        bpf.Ins(
+                            code=bpf.BPF_W | bpf.BPF_LD | bpf.BPF_ABS,
+                            jt=0, jf=0, k=10),
+                        bpf.Ins(
+                            code=bpf.BPF_JMP | bpf.BPF_JGT | bpf.BPF_K,
+                            jt=-2, jf=-3, k=23.4)
+                    ]
+                })
+
+    def test_dce(self):
+        for t in self.ts:
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
+            fragments = bpf.construct_fragments(ccfg, node_ret_tys)
+            dead_fragments = copy.deepcopy(fragments)
+            dead_fragments[50] = [None]
+            fragments[50] = []
+            dce_fragments = bpf.dce(cfg, dead_fragments)
+            self.assertEqual(fragments, dce_fragments)
+
+    def test_merge_cfg(self):
+        def fold_cfg(t):
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            return bpf.collapse_cfg(cfg, node_ret_tys)
+        cfgs = [fold_cfg(t) for t in self.ts]
+        mcfg = bpf.merge_cfgs(cfgs)
+        self.assertEqual(
+            sorted(mcfg.edges(data=True)),
+            [
+                (-3, -1, {}),
+                (-2, -1, {}),
+                (-1, 4, {}),
+                (0, -3, {'data': bpf.Direction.LEFT}),
+                (0, -2, {'data': bpf.Direction.RIGHT}),
+                (1, 3, {}),
+                (2, 3, {}),
+                (3, 5, {}),
+                (4, 1, {'data': bpf.Direction.LEFT}),
+                (4, 2, {'data': bpf.Direction.RIGHT}),
+                (5, 6, {'data': bpf.Direction.LEFT}),
+                (5, 7, {'data': bpf.Direction.RIGHT})
+            ])
+
+        self.assertEqual(
+            sorted(mcfg.nodes(data=True)),
+            [
+                (-3, {'ann': bpf.Node(ty=bpf.NodeTy.ENSEMBLE_LEAF, args=(0,))}),
+                (-2, {'ann': bpf.Node(ty=bpf.NodeTy.ENSEMBLE_LEAF, args=(1,))}),
+                (-1, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
+                (0, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(10, 23.4))}),
+                (1, {'ann': bpf.Node(ty=bpf.NodeTy.ENSEMBLE_LEAF, args=(0,))}),
+                (2, {'ann': bpf.Node(ty=bpf.NodeTy.ENSEMBLE_LEAF, args=(1,))}),
+                (3, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
+                (4, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(10, 23.4))}),
+                (5, {'ann': bpf.Node(ty=bpf.NodeTy.VOTE, args=())}),
+                (6, {'ann': bpf.Node(bpf.NodeTy.LEAF, args=(1,))}),
+                (7, {'ann': bpf.Node(bpf.NodeTy.LEAF, args=(0,))})
+            ])
+
+    def test_ensemble_fragments(self):
+        def fold_cfg(t):
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            return bpf.collapse_cfg(cfg, node_ret_tys)
+        cfgs = [fold_cfg(t) for t in self.ts]
+        mcfg = bpf.merge_cfgs(cfgs)
+        frags = bpf.construct_ensemble_fragments(mcfg)
+        self.assertEqual(
+            frags,
+            {-3: [bpf.Ins(code=0, jt=0, jf=0, k=15),
+                  bpf.Ins(code=20, jt=0, jf=0, k=1),
+                  bpf.Ins(code=2, jt=0, jf=0, k=15),
+                  bpf.Ins(code=5, jt=0, jf=0, k=-1)],
+             -2: [bpf.Ins(code=0, jt=0, jf=0, k=15),
+                  bpf.Ins(code=4, jt=0, jf=0, k=1),
+                  bpf.Ins(code=2, jt=0, jf=0, k=15),
+                  bpf.Ins(code=5, jt=0, jf=0, k=-1)],
+             -1: [],
+             0: [bpf.Ins(code=32, jt=0, jf=0, k=10),
+                 bpf.Ins(code=37, jt=-2, jf=-3, k=23.4)],
+             1: [bpf.Ins(code=0, jt=0, jf=0, k=15),
+                 bpf.Ins(code=20, jt=0, jf=0, k=1),
+                 bpf.Ins(code=2, jt=0, jf=0, k=15),
+                 bpf.Ins(code=5, jt=0, jf=0, k=3)],
+             2: [bpf.Ins(code=0, jt=0, jf=0, k=15),
+                 bpf.Ins(code=4, jt=0, jf=0, k=1),
+                 bpf.Ins(code=2, jt=0, jf=0, k=15),
+                 bpf.Ins(code=5, jt=0, jf=0, k=3)],
+             3: [],
+             4: [bpf.Ins(code=32, jt=0, jf=0, k=10),
+                 bpf.Ins(code=37, jt=2, jf=1, k=23.4)],
+             5: [bpf.Ins(code=0, jt=0, jf=0, k=15),
+                 bpf.Ins(code=37, jt=6, jf=7, k=0)],
+             6: [bpf.Ins(code=6, jt=0, jf=0, k=1)],
+             7: [bpf.Ins(code=6, jt=0, jf=0, k=0)]
+            })
+
+
+    def test_linearize(self):
+        def fold_cfg(t):
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            return bpf.collapse_cfg(cfg, node_ret_tys)
+        cfgs = [fold_cfg(t) for t in self.ts]
+        mcfg = bpf.merge_cfgs(cfgs)
+        frags = bpf.construct_ensemble_fragments(mcfg)
+        inss, label_offsets = bpf.linearize_ensemble(mcfg, frags)
+        self.assertEqual(
+            inss,
+            [
+                bpf.Ins(code=32, jt=0, jf=0, k=10),
+                bpf.Ins(code=37, jt=-2, jf=-3, k=23.4),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=4, jt=0, jf=0, k=1),
+                bpf.Ins(code=2, jt=0, jf=0, k=15),
+                bpf.Ins(code=5, jt=0, jf=0, k=-1),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=20, jt=0, jf=0, k=1),
+                bpf.Ins(code=2, jt=0, jf=0, k=15),
+                bpf.Ins(code=5, jt=0, jf=0, k=-1),
+                bpf.Ins(code=32, jt=0, jf=0, k=10),
+                bpf.Ins(code=37, jt=2, jf=1, k=23.4),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=4, jt=0, jf=0, k=1),
+                bpf.Ins(code=2, jt=0, jf=0, k=15),
+                bpf.Ins(code=5, jt=0, jf=0, k=3),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=20, jt=0, jf=0, k=1),
+                bpf.Ins(code=2, jt=0, jf=0, k=15),
+                bpf.Ins(code=5, jt=0, jf=0, k=3),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=37, jt=6, jf=7, k=0),
+                bpf.Ins(code=6, jt=0, jf=0, k=0),
+                bpf.Ins(code=6, jt=0, jf=0, k=1)
+            ])
+        self.assertEqual(
+            label_offsets,
+            {0: 0, 1: 16, 2: 12, 3: 20, 4: 10, 5: 20, 6: 23,
+             7: 22, -2: 2, -3: 6, -1: 10}
+        )
+
+    def test_assemble(self):
+        def fold_cfg(t):
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            return bpf.collapse_cfg(cfg, node_ret_tys)
+        cfgs = [fold_cfg(t) for t in self.ts]
+        mcfg = bpf.merge_cfgs(cfgs)
+        frags = bpf.construct_ensemble_fragments(mcfg)
+        inss, label_offsets = bpf.linearize_ensemble(mcfg, frags)
+        inss = bpf.assemble_ensemble(inss, label_offsets)
+        self.assertEqual(
+            inss,
+            [
+                bpf.Ins(code=32, jt=0, jf=0, k=10),
+                bpf.Ins(code=37, jt=0, jf=4, k=23.4),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=4, jt=0, jf=0, k=1),
+                bpf.Ins(code=2, jt=0, jf=0, k=15),
+                bpf.Ins(code=5, jt=0, jf=0, k=-1),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=20, jt=0, jf=0, k=1),
+                bpf.Ins(code=2, jt=0, jf=0, k=15),
+                bpf.Ins(code=5, jt=0, jf=0, k=-1),
+                bpf.Ins(code=32, jt=0, jf=0, k=10),
+                bpf.Ins(code=37, jt=0, jf=4, k=23.4),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=4, jt=0, jf=0, k=1),
+                bpf.Ins(code=2, jt=0, jf=0, k=15),
+                bpf.Ins(code=5, jt=0, jf=0, k=3),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=20, jt=0, jf=0, k=1),
+                bpf.Ins(code=2, jt=0, jf=0, k=15),
+                bpf.Ins(code=5, jt=0, jf=0, k=3),
+                bpf.Ins(code=0, jt=0, jf=0, k=15),
+                bpf.Ins(code=37, jt=1, jf=0, k=0),
+                bpf.Ins(code=6, jt=0, jf=0, k=0),
+                bpf.Ins(code=6, jt=0, jf=0, k=1)
+            ])
