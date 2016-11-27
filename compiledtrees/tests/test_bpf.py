@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import copy
+
 from sklearn import tree
 import compiledtrees.bpf as bpf
 from compiledtrees.bpf import Ins, Node, NodeTy, Direction
@@ -12,6 +12,8 @@ from sklearn.utils.testing import \
     assert_array_almost_equal, assert_raises, assert_equal
 import numpy as np
 import unittest
+import logging
+log = logging.getLogger(__name__)
 
 
 REGRESSORS = {
@@ -22,7 +24,8 @@ REGRESSORS = {
 
 CLASSIFIERS = {
     # ensemble.GradientBoostingClassifier,
-    # ensemble.RandomForestClassifier,
+    # TODO: fix predict_proba implementation mismatch.
+    # lambda: ensemble.RandomForestClassifier(max_depth=2, n_estimators=3),
     lambda: tree.DecisionTreeClassifier(max_depth=10, random_state=3),
     lambda: tree.DecisionTreeClassifier(max_depth=2, random_state=3),
 }
@@ -36,14 +39,16 @@ def pairwise(iterable):
     return zip(a, b)
 
 
-def assert_equal_predictions(cls, X, y):
+def assert_equal_predictions(cls, X_train, Y_train, X_test, Y_test):
     clf = cls()
-    clf.fit(X, y)
+    clf.fit(X_train, Y_train)
     compiled = bpf.BpfClassifierPredictor(clf)
     predictors = [clf, compiled]
-    predictions = [p.predict(X) for p in predictors]
-    for (p1, p2) in pairwise(predictions):
-        assert_array_almost_equal(p1, p2, decimal=10)
+    for i in range(X_test.shape[0]):
+        predictions = [p.predict(X_test[i].reshape(1, -1)) for p in predictors]
+        for (p1, p2) in pairwise(predictions):
+            log.debug(clf.predict_proba(X_test[i].reshape(1, -1)))
+            assert_array_almost_equal(p1, p2, decimal=10)
 
 
 class TestBpfUtils(unittest.TestCase):
@@ -70,8 +75,8 @@ class TestBpfUtils(unittest.TestCase):
         self.assertEqual(
             cfg.edges(data=True),
             [
-                (0, -3, {'data': bpf.Direction.LEFT}),
-                (0, -2, {'data': bpf.Direction.RIGHT}),
+                (0, -3, {'data': Direction.LEFT}),
+                (0, -2, {'data': Direction.RIGHT}),
                 (-2, -1, {}),
                 (-3, -1, {})
             ])
@@ -125,23 +130,11 @@ class TestBpfUtils(unittest.TestCase):
                 ]
             })
 
-    def test_dce(self):
-        cfg = bpf.construct_cfg(self.t, 0.5)
-        node_ret_tys = bpf.construct_node_ret_tys(cfg)
-        ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
-        fragments = bpf.construct_fragments(ccfg, node_ret_tys)
-        dead_fragments = copy.deepcopy(fragments)
-        dead_fragments[50] = [None]
-        fragments[50] = []
-        dce_fragments = bpf.dce(cfg, dead_fragments)
-        self.assertEqual(fragments, dce_fragments)
-
     def test_linearize(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
         ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(ccfg, node_ret_tys)
-        fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(ccfg, fragments)
         self.assertEqual(
             inss,
@@ -158,7 +151,6 @@ class TestBpfUtils(unittest.TestCase):
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
         ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(ccfg, node_ret_tys)
-        fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(ccfg, fragments)
         inss = bpf.assemble(inss, label_offsets)
         self.assertEqual(
@@ -175,7 +167,6 @@ class TestBpfUtils(unittest.TestCase):
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
         ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(ccfg, node_ret_tys)
-        fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(ccfg, fragments)
         inss = bpf.assemble(inss, label_offsets)
         result = bpf.interpret(inss, {10: 25})
@@ -202,24 +193,24 @@ class TestBpfDeepUtils(unittest.TestCase):
         self.assertEqual(
             cfg.edges(data=True),
             [
-                (0, 16, {'data': bpf.Direction.RIGHT}),
-                (0, 1, {'data': bpf.Direction.LEFT}),
-                (1, 9, {'data': bpf.Direction.RIGHT}),
-                (1, 2, {'data': bpf.Direction.LEFT}),
-                (2, 3, {'data': bpf.Direction.LEFT}),
-                (2, 6, {'data': bpf.Direction.RIGHT}),
-                (3, -2, {'data': bpf.Direction.RIGHT}),
-                (6, -3, {'data': bpf.Direction.RIGHT}),
-                (9, 10, {'data': bpf.Direction.LEFT}),
-                (9, 13, {'data': bpf.Direction.RIGHT}),
-                (10, -2, {'data': bpf.Direction.RIGHT}),
-                (13, -3, {'data': bpf.Direction.LEFT}),
-                (13, -2, {'data': bpf.Direction.RIGHT}),
-                (16, 17, {'data': bpf.Direction.LEFT}),
-                (16, -3, {'data': bpf.Direction.RIGHT}),
-                (17, 18, {'data': bpf.Direction.LEFT}),
-                (17, -2, {'data': bpf.Direction.RIGHT}),
-                (18, -3, {'data': bpf.Direction.RIGHT}),
+                (0, 16, {'data': Direction.RIGHT}),
+                (0, 1, {'data': Direction.LEFT}),
+                (1, 9, {'data': Direction.RIGHT}),
+                (1, 2, {'data': Direction.LEFT}),
+                (2, 3, {'data': Direction.LEFT}),
+                (2, 6, {'data': Direction.RIGHT}),
+                (3, -2, {'data': Direction.RIGHT}),
+                (6, -3, {'data': Direction.RIGHT}),
+                (9, 10, {'data': Direction.LEFT}),
+                (9, 13, {'data': Direction.RIGHT}),
+                (10, -2, {'data': Direction.RIGHT}),
+                (13, -3, {'data': Direction.LEFT}),
+                (13, -2, {'data': Direction.RIGHT}),
+                (16, 17, {'data': Direction.LEFT}),
+                (16, -3, {'data': Direction.RIGHT}),
+                (17, 18, {'data': Direction.LEFT}),
+                (17, -2, {'data': Direction.RIGHT}),
+                (18, -3, {'data': Direction.RIGHT}),
                 (-3, -1, {}),
                 (-2, -1, {})
             ])
@@ -295,20 +286,20 @@ class TestBpfDeepUtils(unittest.TestCase):
         self.assertEqual(
             ccfg.edges(data=True),
             [
-                (0, 16, {'data': bpf.Direction.RIGHT}),
-                (0, 1, {'data': bpf.Direction.LEFT}),
-                (1, 9, {'data': bpf.Direction.RIGHT}),
-                (1, 2, {'data': bpf.Direction.LEFT}),
-                (2, -2, {'data': bpf.Direction.LEFT}),
-                (2, -3, {'data': bpf.Direction.RIGHT}),
-                (9, 13, {'data': bpf.Direction.RIGHT}),
-                (9, -2, {'data': bpf.Direction.LEFT}),
-                (13, -3, {'data': bpf.Direction.LEFT}),
-                (13, -2, {'data': bpf.Direction.RIGHT}),
-                (16, 17, {'data': bpf.Direction.LEFT}),
-                (16, -3, {'data': bpf.Direction.RIGHT}),
-                (17, -3, {'data': bpf.Direction.LEFT}),
-                (17, -2, {'data': bpf.Direction.RIGHT}),
+                (0, 16, {'data': Direction.RIGHT}),
+                (0, 1, {'data': Direction.LEFT}),
+                (1, 9, {'data': Direction.RIGHT}),
+                (1, 2, {'data': Direction.LEFT}),
+                (2, -2, {'data': Direction.LEFT}),
+                (2, -3, {'data': Direction.RIGHT}),
+                (9, 13, {'data': Direction.RIGHT}),
+                (9, -2, {'data': Direction.LEFT}),
+                (13, -3, {'data': Direction.LEFT}),
+                (13, -2, {'data': Direction.RIGHT}),
+                (16, 17, {'data': Direction.LEFT}),
+                (16, -3, {'data': Direction.RIGHT}),
+                (17, -3, {'data': Direction.LEFT}),
+                (17, -2, {'data': Direction.RIGHT}),
                 (-2, -1, {}),
                 (-3, -1, {})
             ])
@@ -340,23 +331,11 @@ class TestBpfDeepUtils(unittest.TestCase):
                      Ins(code=37, jt=-2, jf=-3, k=77.0)],
             })
 
-    def test_dce(self):
-        cfg = bpf.construct_cfg(self.t, 0.5)
-        node_ret_tys = bpf.construct_node_ret_tys(cfg)
-        cfg = bpf.collapse_cfg(cfg, node_ret_tys)
-        fragments = bpf.construct_fragments(cfg, node_ret_tys)
-        dead_fragments = copy.deepcopy(fragments)
-        dead_fragments[50] = [None]
-        fragments[50] = []
-        dce_fragments = bpf.dce(cfg, dead_fragments)
-        self.assertEqual(fragments, dce_fragments)
-
     def test_linearize(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
         cfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(cfg, node_ret_tys)
-        fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(cfg, fragments)
 
         self.assertEqual(
@@ -390,7 +369,6 @@ class TestBpfDeepUtils(unittest.TestCase):
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
         cfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(cfg, node_ret_tys)
-        fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(cfg, fragments)
         inss = bpf.assemble(inss, label_offsets)
         self.assertEqual(
@@ -419,7 +397,6 @@ class TestBpfDeepUtils(unittest.TestCase):
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
         cfg = bpf.collapse_cfg(cfg, node_ret_tys)
         fragments = bpf.construct_fragments(cfg, node_ret_tys)
-        fragments = bpf.dce(cfg, fragments)
         inss, label_offsets = bpf.linearize(cfg, fragments)
         inss = bpf.assemble(inss, label_offsets)
 
@@ -448,13 +425,17 @@ class TestBpfClassifier(unittest.TestCase):
             assert_raises(ValueError, bpf.BpfClassifierPredictor, cls())
 
     def test_correct_predictions(self):
-        num_features = 20
+        num_features = 10
         num_examples = 1000
-        X = np.random.random_integers(
+        num_test_examples = 50
+        X_train = np.random.random_integers(
             low=-100, high=100, size=(num_examples, num_features))
-        y = np.random.choice([0, 1], size=num_examples)
+        Y_train = np.random.choice([0, 1], size=num_examples)
+        X_test = np.random.random_integers(
+            low=-100, high=100, size=(num_test_examples, num_features))
+        Y_test = np.random.choice([0, 1], size=num_test_examples)
         for cls in CLASSIFIERS:
-            assert_equal_predictions(cls, X, y)
+            assert_equal_predictions(cls, X_train, Y_train, X_test, Y_test)
 
 
 class TestBpfEnsembleUtils(unittest.TestCase):
@@ -492,8 +473,8 @@ class TestBpfEnsembleUtils(unittest.TestCase):
             self.assertEqual(
                 cfg.edges(data=True),
                 [
-                    (0, -3, {'data': bpf.Direction.LEFT}),
-                    (0, -2, {'data': bpf.Direction.RIGHT}),
+                    (0, -3, {'data': Direction.LEFT}),
+                    (0, -2, {'data': Direction.RIGHT}),
                     (-2, -1, {}),
                     (-3, -1, {})
                 ])
@@ -537,10 +518,8 @@ class TestBpfEnsembleUtils(unittest.TestCase):
             fragments = bpf.construct_fragments(ccfg, node_ret_tys)
             self.assertEqual(
                 fragments, {
-                    -3: [Ins(code=bpf.BPF_RET | bpf.BPF_K,
-                                 jt=0, jf=0, k=0)],
-                    -2: [Ins(code=bpf.BPF_RET | bpf.BPF_K,
-                                 jt=0, jf=0, k=1)],
+                    -3: [Ins(code=bpf.BPF_RET | bpf.BPF_K, jt=0, jf=0, k=0)],
+                    -2: [Ins(code=bpf.BPF_RET | bpf.BPF_K, jt=0, jf=0, k=1)],
                     -1: [],
                     0: [
                         Ins(
@@ -551,18 +530,6 @@ class TestBpfEnsembleUtils(unittest.TestCase):
                             jt=-2, jf=-3, k=23.4)
                     ]
                 })
-
-    def test_dce(self):
-        for t in self.ts:
-            cfg = bpf.construct_cfg(t, 0.5)
-            node_ret_tys = bpf.construct_node_ret_tys(cfg)
-            ccfg = bpf.collapse_cfg(cfg, node_ret_tys)
-            fragments = bpf.construct_fragments(ccfg, node_ret_tys)
-            dead_fragments = copy.deepcopy(fragments)
-            dead_fragments[50] = [None]
-            fragments[50] = []
-            dce_fragments = bpf.dce(cfg, dead_fragments)
-            self.assertEqual(fragments, dce_fragments)
 
     def test_merge_cfg(self):
         def fold_cfg(t):
@@ -577,15 +544,17 @@ class TestBpfEnsembleUtils(unittest.TestCase):
                 (-3, -1, {}),
                 (-2, -1, {}),
                 (-1, 4, {}),
-                (0, -3, {'data': bpf.Direction.LEFT}),
-                (0, -2, {'data': bpf.Direction.RIGHT}),
+                (0, -3, {'data': Direction.LEFT}),
+                (0, -2, {'data': Direction.RIGHT}),
                 (1, 3, {}),
                 (2, 3, {}),
                 (3, 5, {}),
-                (4, 1, {'data': bpf.Direction.LEFT}),
-                (4, 2, {'data': bpf.Direction.RIGHT}),
-                (5, 6, {'data': bpf.Direction.LEFT}),
-                (5, 7, {'data': bpf.Direction.RIGHT})
+                (4, 1, {'data': Direction.LEFT}),
+                (4, 2, {'data': Direction.RIGHT}),
+                (5, 6, {'data': Direction.LEFT}),
+                (5, 7, {'data': Direction.RIGHT}),
+                (6, 8, {}),
+                (7, 8, {}),
             ])
 
         self.assertEqual(
@@ -601,7 +570,8 @@ class TestBpfEnsembleUtils(unittest.TestCase):
                 (4, {'ann': Node(ty=NodeTy.BRANCH, args=(10, 23.4))}),
                 (5, {'ann': Node(ty=NodeTy.VOTE, args=())}),
                 (6, {'ann': Node(NodeTy.LEAF, args=(1,))}),
-                (7, {'ann': Node(NodeTy.LEAF, args=(0,))})
+                (7, {'ann': Node(NodeTy.LEAF, args=(0,))}),
+                (8, {'ann': Node(NodeTy.EXIT, args=())}),
             ])
 
     def test_ensemble_fragments(self):
@@ -611,7 +581,7 @@ class TestBpfEnsembleUtils(unittest.TestCase):
             return bpf.collapse_cfg(cfg, node_ret_tys)
         cfgs = [fold_cfg(t) for t in self.ts]
         mcfg = bpf.merge_cfgs(cfgs)
-        frags = bpf.construct_ensemble_fragments(mcfg)
+        frags = bpf.construct_fragments(mcfg)
         self.assertEqual(
             frags,
             {-3: [Ins(code=0, jt=0, jf=0, k=15),
@@ -639,9 +609,8 @@ class TestBpfEnsembleUtils(unittest.TestCase):
              5: [Ins(code=0, jt=0, jf=0, k=15),
                  Ins(code=37, jt=6, jf=7, k=0)],
              6: [Ins(code=6, jt=0, jf=0, k=1)],
-             7: [Ins(code=6, jt=0, jf=0, k=0)]
-            })
-
+             7: [Ins(code=6, jt=0, jf=0, k=0)],
+             8: []})
 
     def test_linearize(self):
         def fold_cfg(t):
@@ -650,8 +619,8 @@ class TestBpfEnsembleUtils(unittest.TestCase):
             return bpf.collapse_cfg(cfg, node_ret_tys)
         cfgs = [fold_cfg(t) for t in self.ts]
         mcfg = bpf.merge_cfgs(cfgs)
-        frags = bpf.construct_ensemble_fragments(mcfg)
-        inss, label_offsets = bpf.linearize_ensemble(mcfg, frags)
+        frags = bpf.construct_fragments(mcfg)
+        inss, label_offsets = bpf.linearize(mcfg, frags)
         self.assertEqual(
             inss,
             [
@@ -683,7 +652,7 @@ class TestBpfEnsembleUtils(unittest.TestCase):
         self.assertEqual(
             label_offsets,
             {0: 0, 1: 16, 2: 12, 3: 20, 4: 10, 5: 20, 6: 23,
-             7: 22, -2: 2, -3: 6, -1: 10}
+             7: 22, -2: 2, -3: 6, -1: 10, 8: 24}
         )
 
     def test_assemble(self):
@@ -693,9 +662,9 @@ class TestBpfEnsembleUtils(unittest.TestCase):
             return bpf.collapse_cfg(cfg, node_ret_tys)
         cfgs = [fold_cfg(t) for t in self.ts]
         mcfg = bpf.merge_cfgs(cfgs)
-        frags = bpf.construct_ensemble_fragments(mcfg)
-        inss, label_offsets = bpf.linearize_ensemble(mcfg, frags)
-        inss = bpf.assemble_ensemble(inss, label_offsets)
+        frags = bpf.construct_fragments(mcfg)
+        inss, label_offsets = bpf.linearize(mcfg, frags)
+        inss = bpf.assemble(inss, label_offsets)
         self.assertEqual(
             inss,
             [
@@ -704,27 +673,26 @@ class TestBpfEnsembleUtils(unittest.TestCase):
                 Ins(code=0, jt=0, jf=0, k=15),
                 Ins(code=4, jt=0, jf=0, k=1),
                 Ins(code=2, jt=0, jf=0, k=15),
-                Ins(code=5, jt=0, jf=0, k=-1),
+                Ins(code=5, jt=0, jf=0, k=4),
                 Ins(code=0, jt=0, jf=0, k=15),
                 Ins(code=20, jt=0, jf=0, k=1),
                 Ins(code=2, jt=0, jf=0, k=15),
-                Ins(code=5, jt=0, jf=0, k=-1),
+                Ins(code=5, jt=0, jf=0, k=0),
                 Ins(code=32, jt=0, jf=0, k=10),
                 Ins(code=37, jt=0, jf=4, k=23.4),
                 Ins(code=0, jt=0, jf=0, k=15),
                 Ins(code=4, jt=0, jf=0, k=1),
                 Ins(code=2, jt=0, jf=0, k=15),
-                Ins(code=5, jt=0, jf=0, k=3),
+                Ins(code=5, jt=0, jf=0, k=4),
                 Ins(code=0, jt=0, jf=0, k=15),
                 Ins(code=20, jt=0, jf=0, k=1),
                 Ins(code=2, jt=0, jf=0, k=15),
-                Ins(code=5, jt=0, jf=0, k=3),
+                Ins(code=5, jt=0, jf=0, k=0),
                 Ins(code=0, jt=0, jf=0, k=15),
                 Ins(code=37, jt=1, jf=0, k=0),
                 Ins(code=6, jt=0, jf=0, k=0),
                 Ins(code=6, jt=0, jf=0, k=1)
             ])
-
 
     def test_interpret(self):
         def fold_cfg(t):
@@ -733,10 +701,10 @@ class TestBpfEnsembleUtils(unittest.TestCase):
             return bpf.collapse_cfg(cfg, node_ret_tys)
         cfgs = [fold_cfg(t) for t in self.ts]
         mcfg = bpf.merge_cfgs(cfgs)
-        frags = bpf.construct_ensemble_fragments(mcfg)
-        inss, label_offsets = bpf.linearize_ensemble(mcfg, frags)
-        inss = bpf.assemble_ensemble(inss, label_offsets)
-        # result = bpf.interpret(inss, {10: 25})
-        # self.assertEqual(result, 1)
-        # result = bpf.interpret(inss, {10: 20})
-        # self.assertEqual(result, 0)
+        frags = bpf.construct_fragments(mcfg)
+        inss, label_offsets = bpf.linearize(mcfg, frags)
+        inss = bpf.assemble(inss, label_offsets)
+        result = bpf.interpret(inss, {10: 25})
+        self.assertEqual(result, 1)
+        result = bpf.interpret(inss, {10: 20})
+        self.assertEqual(result, 0)

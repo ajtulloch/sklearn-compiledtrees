@@ -1,4 +1,5 @@
-from sklearn import tree
+from sklearn import tree, ensemble
+from sklearn.ensemble.forest import ForestClassifier
 from sklearn.base import ClassifierMixin
 
 import copy
@@ -7,6 +8,8 @@ import numpy as np
 import enum
 import collections
 import networkx as nx
+import logging
+log = logging.getLogger(__name__)
 
 
 class Direction(enum.Enum):
@@ -31,6 +34,7 @@ ACCEPT = Node(ty=NodeTy.LEAF, args=(1,))
 REJECT = Node(ty=NodeTy.LEAF, args=(0,))
 
 ENSEMBLE_VOTING_REGISTER = 15
+BPF_NUM_REGISTERS = 16
 
 
 def visit(tree, node, visit_leaf, visit_inner, join):
@@ -161,16 +165,34 @@ def pairwise(iterable):
 
 
 def merge_cfgs(cfgs):
+    cfgs = copy.deepcopy(cfgs)
+
     # Algorithm:
     # a) Renumber all nodes/edges and insert into the graph.
     # b) Insert edge from the `exit` node of the cfg
     # to the `input` node of the next cfg.
 
     G = collections.namedtuple('G', ['input_node', 'exit_node'])
-    gs = []
-    mcfg = nx.DiGraph()
 
-    def f(cfg):
+    def ensemble_postlude():
+        g = nx.DiGraph()
+        ensemble_vote_node = 0
+        ensemble_accept_node = 1
+        ensemble_reject_node = 2
+        ensemble_exit_node = 3
+        g.add_node(ensemble_vote_node, ann=Node(ty=NodeTy.VOTE, args=()))
+        g.add_node(ensemble_accept_node, ann=ACCEPT)
+        g.add_node(ensemble_reject_node, ann=REJECT)
+        g.add_node(ensemble_exit_node, ann=EXIT)
+        g.add_edge(ensemble_vote_node, ensemble_accept_node,
+                   data=Direction.LEFT)
+        g.add_edge(ensemble_vote_node, ensemble_reject_node,
+                   data=Direction.RIGHT)
+        g.add_edge(ensemble_accept_node, ensemble_exit_node)
+        g.add_edge(ensemble_reject_node, ensemble_exit_node)
+        return g
+
+    def f(cfg, mcfg):
         min_current_node = min(cfg.nodes())
         if not mcfg.nodes():
             max_existing_node = min_current_node - 1
@@ -179,29 +201,27 @@ def merge_cfgs(cfgs):
         offset = max_existing_node - min_current_node + 1
 
         for (node, data) in cfg.nodes(data=True):
-            if 'ann' in data and data['ann'].ty == NodeTy.LEAF:
-                data['ann'] = data['ann']._replace(ty=NodeTy.ENSEMBLE_LEAF)
             mcfg.add_node(node + offset, **data)
         for (src, dst, data) in cfg.edges(data=True):
+            log.info("Adding edge: %s, %s, %s -> %s, %s",
+                     src, dst, data, src + offset, dst + offset)
             mcfg.add_edge(src + offset, dst + offset, **data)
         (exit_node,) = [n for (n, data) in cfg.nodes(data=True)
                         if data['ann'].ty == NodeTy.EXIT]
         return G(input_node=0 + offset, exit_node=exit_node + offset)
-    gs = [f(cfg) for cfg in cfgs]
+
+    for cfg in cfgs:
+        for (node, data) in cfg.nodes(data=True):
+            # LEAF in weak learners become ENSEMBLE_LEAF.
+            if 'ann' in data and data['ann'].ty == NodeTy.LEAF:
+                data['ann'] = data['ann']._replace(ty=NodeTy.ENSEMBLE_LEAF)
+
+    cfgs = cfgs + [ensemble_postlude()]
+    mcfg = nx.DiGraph()
+    gs = [f(cfg, mcfg) for cfg in cfgs]
+
     for (pred, succ) in pairwise(gs):
         mcfg.add_edge(pred.exit_node, succ.input_node)
-
-    ensemble_vote_node = max(mcfg.nodes()) + 1
-    ensemble_accept_node = max(mcfg.nodes()) + 2
-    ensemble_reject_node = max(mcfg.nodes()) + 3
-    mcfg.add_edge(gs[-1].exit_node, ensemble_vote_node)
-    mcfg.add_node(ensemble_vote_node, ann=Node(ty=NodeTy.VOTE, args=()))
-    mcfg.add_node(ensemble_accept_node, ann=ACCEPT)
-    mcfg.add_node(ensemble_reject_node, ann=REJECT)
-    mcfg.add_edge(ensemble_vote_node, ensemble_accept_node,
-                  data=Direction.LEFT)
-    mcfg.add_edge(ensemble_vote_node, ensemble_reject_node,
-                  data=Direction.RIGHT)
     return mcfg
 
 
@@ -211,61 +231,16 @@ def construct_fragments(cfg, node_ret_tys=None):
         ty = cfg.node[n]['ann'].ty
         if ty == NodeTy.EXIT:
             fragments[n] = []
-            continue
-        if ty == NodeTy.LEAF:
-            if node_ret_tys:
-                assert n in node_ret_tys and len(node_ret_tys[n]) == 1
-            (decision,) = cfg.node[n]['ann'].args
-            fragments[n] = [bpf_stmt(BPF_RET | BPF_K, decision)]
-            continue
-        if ty == NodeTy.BRANCH:
-            if node_ret_tys:
-                assert n in node_ret_tys and len(node_ret_tys[n]) > 1
-            (feature, threshold) = cfg.node[n]['ann'].args
-            threshold = threshold
-
-            left, right = None, None
-            for (src, dst, direction) in cfg.edges(data='data'):
-                if src != n:
-                    continue
-                if direction == Direction.LEFT:
-                    left = dst
-                    continue
-                if direction == Direction.RIGHT:
-                    right = dst
-            assert left
-            assert right
-            # If true, jump to the right
-            # Note: tests X[f] > threshold, so logic is inverted.
-            # Thus, in the true branch, we jump the entire left subtree,
-            # and on failure we just continue.
-            compare = bpf_jump(
-                BPF_JMP | BPF_JGT | BPF_K, threshold, right, left)
-            frag = extract_feature_bpf(feature) + [compare]
-            fragments[n] = frag
-            continue
-    return fragments
-
-
-def construct_ensemble_fragments(cfg, node_ret_tys=None):
-    fragments = {}
-    for n in nx.dfs_postorder_nodes(cfg, 0):
-        ty = cfg.node[n]['ann'].ty
-        if ty == NodeTy.EXIT:
-            fragments[n] = []
-            continue
         elif ty == NodeTy.LEAF:
             if node_ret_tys:
                 assert n in node_ret_tys and len(node_ret_tys[n]) == 1
             (decision,) = cfg.node[n]['ann'].args
             fragments[n] = [bpf_stmt(BPF_RET | BPF_K, decision)]
-            continue
         elif ty == NodeTy.ENSEMBLE_LEAF:
             if node_ret_tys:
                 assert n in node_ret_tys and len(node_ret_tys[n]) == 1
             (decision,) = cfg.node[n]['ann'].args
             (exit_node,) = cfg.successors(n)
-            # XXX: DIRECTION!
             # Decision == 1 -> accept
             # Decision == 0 -> reject
             fragments[n] = [
@@ -278,7 +253,6 @@ def construct_ensemble_fragments(cfg, node_ret_tys=None):
                 # Jump to the exit node.
                 bpf_stmt(BPF_JMP | BPF_JA, exit_node),
             ]
-            continue
         elif ty == NodeTy.BRANCH:
             if node_ret_tys:
                 assert n in node_ret_tys and len(node_ret_tys[n]) > 1
@@ -304,7 +278,6 @@ def construct_ensemble_fragments(cfg, node_ret_tys=None):
                 BPF_JMP | BPF_JGT | BPF_K, threshold, right, left)
             frag = extract_feature_bpf(feature) + [compare]
             fragments[n] = frag
-            continue
         elif ty == NodeTy.VOTE:
             left, right = None, None
             for (src, dst, direction) in cfg.edges(data='data'):
@@ -327,61 +300,19 @@ def construct_ensemble_fragments(cfg, node_ret_tys=None):
                 # XXX: DIRECTION!
                 bpf_jump(BPF_JMP | BPF_JGT | BPF_K, 0, left, right),
             ]
-            continue
         else:
-            raise Exception("Unhandled node type, {}, {}".format(n, cfg.node[n]))
+            raise Exception("Unhandled node type, {}, {}".format(
+                n, cfg.node[n]))
     return fragments
-
-
-def dce(cfg, fragments):
-    fragments = copy.deepcopy(fragments)
-    visited = {0}
-    for n in nx.dfs_preorder_nodes(cfg, 0):
-        ty = cfg.node[n]['ann'].ty
-        if ty == NodeTy.BRANCH:
-            jmp = fragments[n][-1]
-            if jmp.code == BPF_JMP | BPF_JGT | BPF_K:
-                visited |= {jmp.jt, jmp.jf}
-
-    for dst in fragments.keys():
-        if dst not in visited:
-            fragments[dst] = []
-    return fragments
-
-
-def linearize_ensemble(cfg, fragments):
-    inss = []
-    label_offsets = {}
-    for n in reversed(list(nx.dfs_postorder_nodes(cfg, 0))):
-        label_offsets[n] = len(inss)
-        inss += fragments[n]
-    return (inss, label_offsets)
 
 
 def linearize(cfg, fragments):
     inss = []
     label_offsets = {}
-    # TODO: Fix traversal order
     for n in reversed(list(nx.dfs_postorder_nodes(cfg))):
         label_offsets[n] = len(inss)
         inss += fragments[n]
     return (inss, label_offsets)
-
-
-def assemble_ensemble(inss, label_offsets):
-    inss = copy.deepcopy(inss)
-    for i, ins in enumerate(inss):
-        if ins.code == BPF_JMP | BPF_JGT | BPF_K:
-            # Special case
-            print(ins)
-            jt_abs = label_offsets[ins.jt]
-            jf_abs = label_offsets[ins.jf]
-            jt_rel = jt_abs - i - 1
-            jf_rel = jf_abs - i - 1
-            assert jt_rel >= 0
-            assert jf_rel >= 0
-            inss[i] = inss[i]._replace(jt=jt_rel, jf=jf_rel)
-    return inss
 
 
 def assemble(inss, label_offsets):
@@ -395,28 +326,49 @@ def assemble(inss, label_offsets):
             assert jt_rel >= 0
             assert jf_rel >= 0
             inss[i] = inss[i]._replace(jt=jt_rel, jf=jf_rel)
+        if ins.code == BPF_JMP | BPF_JA:
+            k_abs = label_offsets[ins.k]
+            k_rel = k_abs - i - 1
+            assert k_rel >= 0
+            inss[i] = inss[i]._replace(k=k_rel)
     return inss
 
 
 def interpret(inss, features):
     ip = -1
     acc = None
-    M = [None for _ in range(15)]
+    M = [0 for _ in range(BPF_NUM_REGISTERS)]
     while True:
         ip += 1
         ins = inss[ip]
+        log.debug("ip: %s, ins: %s, acc: %s, M: %s", ip, ins, acc, M)
         if ins.code == BPF_W | BPF_LD | BPF_ABS:
             # Load from features
             acc = features[ins.k]
-            continue
         elif ins.code == BPF_JMP | BPF_JGT | BPF_K:
+            assert acc is not None
             if acc > ins.k:
+                assert ins.jt >= 0
                 ip += ins.jt
             else:
+                assert ins.jf >= 0
                 ip += ins.jf
-            continue
         elif ins.code == BPF_RET | BPF_K:
             return ins.k
+        elif ins.code == BPF_LD | BPF_K:
+            acc = M[ins.k]
+        elif ins.code == BPF_ADD | BPF_ALU:
+            assert acc is not None
+            acc += ins.k
+        elif ins.code == BPF_SUB | BPF_ALU:
+            assert acc is not None
+            acc -= ins.k
+        elif ins.code == BPF_ST | BPF_K:
+            assert acc is not None
+            M[ins.k] = acc
+        elif ins.code == BPF_JMP | BPF_JA:
+            assert ins.k >= 0
+            ip += ins.k
         else:
             raise Exception("Unknown opcode: {}".format(ins))
 
@@ -425,11 +377,23 @@ class BpfClassifierPredictor(ClassifierMixin):
     def __init__(self, clf, decision_threshold=0.5):
         if not self.compilable(clf):
             raise ValueError("Invalid classifier: {}".format(clf))
-        cfg = construct_cfg(clf.tree_, decision_threshold)
-        node_ret_tys = construct_node_ret_tys(cfg)
-        cfg = collapse_cfg(cfg, node_ret_tys)
-        fragments = construct_fragments(cfg, node_ret_tys)
-        fragments = dce(cfg, fragments)
+        cfg = None
+        if isinstance(clf, tree.DecisionTreeClassifier) \
+           and clf.tree_ is not None:
+            cfg = construct_cfg(clf.tree_, decision_threshold)
+            node_ret_tys = construct_node_ret_tys(cfg)
+            cfg = collapse_cfg(cfg, node_ret_tys)
+
+        if isinstance(clf, ForestClassifier):
+            def fold_cfg(t):
+                cfg = construct_cfg(t, decision_threshold)
+                node_ret_tys = construct_node_ret_tys(cfg)
+                return collapse_cfg(cfg, node_ret_tys)
+            ts = [e.tree_ for e in clf.estimators_]
+            cfgs = [fold_cfg(t) for t in ts]
+            cfg = merge_cfgs(cfgs)
+        assert cfg
+        fragments = construct_fragments(cfg)
         inss, label_offsets = linearize(cfg, fragments)
         assembled_inss = assemble(inss, label_offsets)
         self.assembled_ins = assembled_inss
@@ -447,4 +411,11 @@ class BpfClassifierPredictor(ClassifierMixin):
         if isinstance(clf, tree.DecisionTreeClassifier) \
            and clf.tree_ is not None:
             return True
+
+        if isinstance(clf, ForestClassifier):
+            estimators = np.asarray(clf.estimators_)
+            return estimators.size \
+                and all(cls.compilable(e) for e in estimators.flat) \
+                and clf.n_outputs_ == 1
+
         return False
