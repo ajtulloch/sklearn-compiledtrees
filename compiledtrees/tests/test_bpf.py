@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import copy
 from sklearn import tree
 import compiledtrees.bpf as bpf
+from compiledtrees.bpf import Ins
 
 from sklearn.utils.testing import \
     assert_array_almost_equal, assert_raises, assert_equal
@@ -150,10 +151,10 @@ class TestBpfUtils(unittest.TestCase):
             [
                 bpf.Ins(code=32, jt=0, jf=0, k=10),
                 bpf.Ins(code=37, jt=-2, jf=-3, k=23.4),
+                bpf.Ins(code=6, jt=0, jf=0, k=1),
                 bpf.Ins(code=6, jt=0, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=1)
             ])
-        self.assertEqual(label_offsets, {-3: 2, -2: 3, -1: 4, 0: 0})
+        self.assertEqual(label_offsets, {0: 0, -1: 4, -3: 3, -2: 2})
 
     def test_assemble(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
@@ -166,10 +167,10 @@ class TestBpfUtils(unittest.TestCase):
         self.assertEqual(
             inss,
             [
-                bpf.Ins(code=32, jt=0, jf=0, k=10),
-                bpf.Ins(code=37, jt=1, jf=0, k=23.4),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=1)
+                Ins(code=32, jt=0, jf=0, k=10),
+                Ins(code=37, jt=0, jf=1, k=23.4),
+                Ins(code=6, jt=0, jf=0, k=1),
+                Ins(code=6, jt=0, jf=0, k=0)
             ])
 
     def test_interpret(self):
@@ -364,28 +365,28 @@ class TestBpfDeepUtils(unittest.TestCase):
         self.assertEqual(
             inss,
             [
-                bpf.Ins(code=32, jt=0, jf=0, k=5),
-                bpf.Ins(code=37, jt=16, jf=1, k=94.0),
-                bpf.Ins(code=32, jt=0, jf=0, k=2),
-                bpf.Ins(code=37, jt=-3, jf=17, k=45.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=1),
-                bpf.Ins(code=37, jt=-2, jf=-3, k=77.0),
-                bpf.Ins(code=32, jt=0, jf=0, k=6),
-                bpf.Ins(code=37, jt=9, jf=2, k=10.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=8),
-                bpf.Ins(code=37, jt=-3, jf=-2, k=-75.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=0),
-                bpf.Ins(code=37, jt=13, jf=-2, k=-48.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=9),
-                bpf.Ins(code=37, jt=-2, jf=-3, k=33.5),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=1),
+                Ins(code=32, jt=0, jf=0, k=5),
+                Ins(code=37, jt=16, jf=1, k=94.0),
+                Ins(code=32, jt=0, jf=0, k=6),
+                Ins(code=37, jt=9, jf=2, k=10.5),
+                Ins(code=32, jt=0, jf=0, k=8),
+                Ins(code=37, jt=-3, jf=-2, k=-75.5),
+                Ins(code=32, jt=0, jf=0, k=0),
+                Ins(code=37, jt=13, jf=-2, k=-48.5),
+                Ins(code=32, jt=0, jf=0, k=9),
+                Ins(code=37, jt=-2, jf=-3, k=33.5),
+                Ins(code=32, jt=0, jf=0, k=2),
+                Ins(code=37, jt=-3, jf=17, k=45.5),
+                Ins(code=32, jt=0, jf=0, k=1),
+                Ins(code=37, jt=-2, jf=-3, k=77.0),
+                Ins(code=6, jt=0, jf=0, k=1),
+                Ins(code=6, jt=0, jf=0, k=0)
             ])
 
         self.assertEqual(
             label_offsets,
-            {-3: 14, -2: 15, -1: 16, 0: 0,
-             1: 6, 2: 8, 9: 10, 13: 12, 16: 2, 17: 4})
+            {0: 0, 1: 2, 2: 4, 9: 6, 13: 8, 16: 10, 17: 12,
+             -1: 16, -3: 15, -2: 14})
 
     def test_assemble(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
@@ -398,22 +399,22 @@ class TestBpfDeepUtils(unittest.TestCase):
         self.assertEqual(
             inss,
             [
-                bpf.Ins(code=32, jt=0, jf=0, k=5),
-                bpf.Ins(code=37, jt=0, jf=4, k=94.0),
-                bpf.Ins(code=32, jt=0, jf=0, k=2),
-                bpf.Ins(code=37, jt=10, jf=0, k=45.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=1),
-                bpf.Ins(code=37, jt=9, jf=8, k=77.0),
-                bpf.Ins(code=32, jt=0, jf=0, k=6),
-                bpf.Ins(code=37, jt=2, jf=0, k=10.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=8),
-                bpf.Ins(code=37, jt=4, jf=5, k=-75.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=0),
-                bpf.Ins(code=37, jt=0, jf=3, k=-48.5),
-                bpf.Ins(code=32, jt=0, jf=0, k=9),
-                bpf.Ins(code=37, jt=1, jf=0, k=33.5),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=1)
+                Ins(code=32, jt=0, jf=0, k=5),
+                Ins(code=37, jt=8, jf=0, k=94.0),
+                Ins(code=32, jt=0, jf=0, k=6),
+                Ins(code=37, jt=2, jf=0, k=10.5),
+                Ins(code=32, jt=0, jf=0, k=8),
+                Ins(code=37, jt=9, jf=8, k=-75.5),
+                Ins(code=32, jt=0, jf=0, k=0),
+                Ins(code=37, jt=0, jf=6, k=-48.5),
+                Ins(code=32, jt=0, jf=0, k=9),
+                Ins(code=37, jt=4, jf=5, k=33.5),
+                Ins(code=32, jt=0, jf=0, k=2),
+                Ins(code=37, jt=3, jf=0, k=45.5),
+                Ins(code=32, jt=0, jf=0, k=1),
+                Ins(code=37, jt=0, jf=1, k=77.0),
+                Ins(code=6, jt=0, jf=0, k=1),
+                Ins(code=6, jt=0, jf=0, k=0)
             ])
 
     def test_interpret(self):

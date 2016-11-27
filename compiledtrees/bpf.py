@@ -362,7 +362,7 @@ def linearize(cfg, fragments):
     inss = []
     label_offsets = {}
     # TODO: Fix traversal order
-    for n in nx.dfs_postorder_nodes(cfg.reverse(copy=True), -1):
+    for n in reversed(list(nx.dfs_postorder_nodes(cfg))):
         label_offsets[n] = len(inss)
         inss += fragments[n]
     return (inss, label_offsets)
