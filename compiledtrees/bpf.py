@@ -401,21 +401,19 @@ def assemble(inss, label_offsets):
 def interpret(inss, features):
     ip = -1
     acc = None
+    M = [None for _ in range(15)]
     while True:
         ip += 1
         ins = inss[ip]
         if ins.code == BPF_W | BPF_LD | BPF_ABS:
             # Load from features
             acc = features[ins.k]
-            assert inss[ip+1].code == BPF_JMP | BPF_JGT | BPF_K
             continue
         elif ins.code == BPF_JMP | BPF_JGT | BPF_K:
             if acc > ins.k:
                 ip += ins.jt
             else:
                 ip += ins.jf
-            assert inss[ip+1].code in (BPF_W | BPF_LD | BPF_ABS,
-                                       BPF_RET | BPF_K)
             continue
         elif ins.code == BPF_RET | BPF_K:
             return ins.k

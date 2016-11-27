@@ -6,15 +6,12 @@ from __future__ import unicode_literals
 import copy
 from sklearn import tree
 import compiledtrees.bpf as bpf
-from compiledtrees.bpf import Ins
+from compiledtrees.bpf import Ins, Node, NodeTy, Direction
 
 from sklearn.utils.testing import \
     assert_array_almost_equal, assert_raises, assert_equal
 import numpy as np
 import unittest
-
-import pprint
-import textwrap
 
 
 REGRESSORS = {
@@ -82,10 +79,10 @@ class TestBpfUtils(unittest.TestCase):
         self.assertEqual(
             cfg.nodes(data=True),
             [
-                (0, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(10, 23.4))}),
-                (-2, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))}),
-                (-1, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
-                (-3, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))})
+                (0, {'ann': Node(ty=NodeTy.BRANCH, args=(10, 23.4))}),
+                (-2, {'ann': Node(ty=NodeTy.LEAF, args=(1,))}),
+                (-1, {'ann': Node(ty=NodeTy.EXIT, args=())}),
+                (-3, {'ann': Node(ty=NodeTy.LEAF, args=(0,))})
             ])
 
     def test_construct_node_ret_tys(self):
@@ -94,10 +91,10 @@ class TestBpfUtils(unittest.TestCase):
         self.assertEquals(
             node_ret_tys,
             {
-                -3: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))]),
-                -2: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-                0: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                        bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))])
+                -3: set([Node(ty=NodeTy.LEAF, args=(0,))]),
+                -2: set([Node(ty=NodeTy.LEAF, args=(1,))]),
+                0: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                        Node(ty=NodeTy.LEAF, args=(1,))])
             })
 
     def test_collapse_cfg(self):
@@ -115,14 +112,14 @@ class TestBpfUtils(unittest.TestCase):
         fragments = bpf.construct_fragments(ccfg, node_ret_tys)
         self.assertEqual(
             fragments, {
-                -3: [bpf.Ins(code=bpf.BPF_RET | bpf.BPF_K, jt=0, jf=0, k=0)],
-                -2: [bpf.Ins(code=bpf.BPF_RET | bpf.BPF_K, jt=0, jf=0, k=1)],
+                -3: [Ins(code=bpf.BPF_RET | bpf.BPF_K, jt=0, jf=0, k=0)],
+                -2: [Ins(code=bpf.BPF_RET | bpf.BPF_K, jt=0, jf=0, k=1)],
                 -1: [],
                 0: [
-                    bpf.Ins(
+                    Ins(
                         code=bpf.BPF_W | bpf.BPF_LD | bpf.BPF_ABS,
                         jt=0, jf=0, k=10),
-                    bpf.Ins(
+                    Ins(
                         code=bpf.BPF_JMP | bpf.BPF_JGT | bpf.BPF_K,
                         jt=-2, jf=-3, k=23.4)
                 ]
@@ -149,10 +146,10 @@ class TestBpfUtils(unittest.TestCase):
         self.assertEqual(
             inss,
             [
-                bpf.Ins(code=32, jt=0, jf=0, k=10),
-                bpf.Ins(code=37, jt=-2, jf=-3, k=23.4),
-                bpf.Ins(code=6, jt=0, jf=0, k=1),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
+                Ins(code=32, jt=0, jf=0, k=10),
+                Ins(code=37, jt=-2, jf=-3, k=23.4),
+                Ins(code=6, jt=0, jf=0, k=1),
+                Ins(code=6, jt=0, jf=0, k=0),
             ])
         self.assertEqual(label_offsets, {0: 0, -1: 4, -3: 3, -2: 2})
 
@@ -235,20 +232,20 @@ class TestBpfDeepUtils(unittest.TestCase):
         self.assertEqual(
             cfg.nodes(data=True),
             [
-                (0, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(5, 94.0))}),
-                (1, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(6, 10.5))}),
-                (2, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(8, -75.5))}),
-                (3, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(0, -41.5))}),
-                (6, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(5, 80.5))}),
-                (9, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(0, -48.5))}),
-                (10, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(2, 55.5))}),
-                (13, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(9, 33.5))}),
-                (16, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(2, 45.5))}),
-                (17, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(1, 77.0))}),
-                (18, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(7, 55.0))}),
-                (-1, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
-                (-3, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))}),
-                (-2, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))})
+                (0, {'ann': Node(ty=NodeTy.BRANCH, args=(5, 94.0))}),
+                (1, {'ann': Node(ty=NodeTy.BRANCH, args=(6, 10.5))}),
+                (2, {'ann': Node(ty=NodeTy.BRANCH, args=(8, -75.5))}),
+                (3, {'ann': Node(ty=NodeTy.BRANCH, args=(0, -41.5))}),
+                (6, {'ann': Node(ty=NodeTy.BRANCH, args=(5, 80.5))}),
+                (9, {'ann': Node(ty=NodeTy.BRANCH, args=(0, -48.5))}),
+                (10, {'ann': Node(ty=NodeTy.BRANCH, args=(2, 55.5))}),
+                (13, {'ann': Node(ty=NodeTy.BRANCH, args=(9, 33.5))}),
+                (16, {'ann': Node(ty=NodeTy.BRANCH, args=(2, 45.5))}),
+                (17, {'ann': Node(ty=NodeTy.BRANCH, args=(1, 77.0))}),
+                (18, {'ann': Node(ty=NodeTy.BRANCH, args=(7, 55.0))}),
+                (-1, {'ann': Node(ty=NodeTy.EXIT, args=())}),
+                (-3, {'ann': Node(ty=NodeTy.LEAF, args=(0,))}),
+                (-2, {'ann': Node(ty=NodeTy.LEAF, args=(1,))})
             ])
 
     def test_construct_node_ret_tys(self):
@@ -256,26 +253,26 @@ class TestBpfDeepUtils(unittest.TestCase):
         node_ret_tys = bpf.construct_node_ret_tys(cfg)
         self.assertEquals(
             node_ret_tys,
-            {-3: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))]),
-             -2: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             0: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                     bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             1: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                     bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             2: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                     bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             3: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             6: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))]),
-             9: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                     bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             10: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             13: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                      bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             16: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                      bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             17: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                      bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-             18: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))])})
+            {-3: set([Node(ty=NodeTy.LEAF, args=(0,))]),
+             -2: set([Node(ty=NodeTy.LEAF, args=(1,))]),
+             0: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                     Node(ty=NodeTy.LEAF, args=(1,))]),
+             1: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                     Node(ty=NodeTy.LEAF, args=(1,))]),
+             2: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                     Node(ty=NodeTy.LEAF, args=(1,))]),
+             3: set([Node(ty=NodeTy.LEAF, args=(1,))]),
+             6: set([Node(ty=NodeTy.LEAF, args=(0,))]),
+             9: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                     Node(ty=NodeTy.LEAF, args=(1,))]),
+             10: set([Node(ty=NodeTy.LEAF, args=(1,))]),
+             13: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                      Node(ty=NodeTy.LEAF, args=(1,))]),
+             16: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                      Node(ty=NodeTy.LEAF, args=(1,))]),
+             17: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                      Node(ty=NodeTy.LEAF, args=(1,))]),
+             18: set([Node(ty=NodeTy.LEAF, args=(0,))])})
 
     def test_collapse_cfg(self):
         cfg = bpf.construct_cfg(self.t, 0.5)
@@ -284,16 +281,16 @@ class TestBpfDeepUtils(unittest.TestCase):
         self.assertEqual(
             sorted(ccfg.nodes(data=True)),
             [
-                (-3, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))}),
-                (-2, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))}),
-                (-1, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
-                (0, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(5, 94.0))}),
-                (1, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(6, 10.5))}),
-                (2, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(8, -75.5))}),
-                (9, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(0, -48.5))}),
-                (13, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(9, 33.5))}),
-                (16, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(2, 45.5))}),
-                (17, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(1, 77.0))})
+                (-3, {'ann': Node(ty=NodeTy.LEAF, args=(0,))}),
+                (-2, {'ann': Node(ty=NodeTy.LEAF, args=(1,))}),
+                (-1, {'ann': Node(ty=NodeTy.EXIT, args=())}),
+                (0, {'ann': Node(ty=NodeTy.BRANCH, args=(5, 94.0))}),
+                (1, {'ann': Node(ty=NodeTy.BRANCH, args=(6, 10.5))}),
+                (2, {'ann': Node(ty=NodeTy.BRANCH, args=(8, -75.5))}),
+                (9, {'ann': Node(ty=NodeTy.BRANCH, args=(0, -48.5))}),
+                (13, {'ann': Node(ty=NodeTy.BRANCH, args=(9, 33.5))}),
+                (16, {'ann': Node(ty=NodeTy.BRANCH, args=(2, 45.5))}),
+                (17, {'ann': Node(ty=NodeTy.BRANCH, args=(1, 77.0))})
             ])
         self.assertEqual(
             ccfg.edges(data=True),
@@ -324,23 +321,23 @@ class TestBpfDeepUtils(unittest.TestCase):
         self.assertEqual(
             fragments,
             {
-                -3: [bpf.Ins(code=6, jt=0, jf=0, k=0)],
-                -2: [bpf.Ins(code=6, jt=0, jf=0, k=1)],
+                -3: [Ins(code=6, jt=0, jf=0, k=0)],
+                -2: [Ins(code=6, jt=0, jf=0, k=1)],
                 -1: [],
-                0: [bpf.Ins(code=32, jt=0, jf=0, k=5),
-                    bpf.Ins(code=37, jt=16, jf=1, k=94.0)],
-                1: [bpf.Ins(code=32, jt=0, jf=0, k=6),
-                    bpf.Ins(code=37, jt=9, jf=2, k=10.5)],
-                2: [bpf.Ins(code=32, jt=0, jf=0, k=8),
-                    bpf.Ins(code=37, jt=-3, jf=-2, k=-75.5)],
-                9: [bpf.Ins(code=32, jt=0, jf=0, k=0),
-                    bpf.Ins(code=37, jt=13, jf=-2, k=-48.5)],
-                13: [bpf.Ins(code=32, jt=0, jf=0, k=9),
-                     bpf.Ins(code=37, jt=-2, jf=-3, k=33.5)],
-                16: [bpf.Ins(code=32, jt=0, jf=0, k=2),
-                     bpf.Ins(code=37, jt=-3, jf=17, k=45.5)],
-                17: [bpf.Ins(code=32, jt=0, jf=0, k=1),
-                     bpf.Ins(code=37, jt=-2, jf=-3, k=77.0)],
+                0: [Ins(code=32, jt=0, jf=0, k=5),
+                    Ins(code=37, jt=16, jf=1, k=94.0)],
+                1: [Ins(code=32, jt=0, jf=0, k=6),
+                    Ins(code=37, jt=9, jf=2, k=10.5)],
+                2: [Ins(code=32, jt=0, jf=0, k=8),
+                    Ins(code=37, jt=-3, jf=-2, k=-75.5)],
+                9: [Ins(code=32, jt=0, jf=0, k=0),
+                    Ins(code=37, jt=13, jf=-2, k=-48.5)],
+                13: [Ins(code=32, jt=0, jf=0, k=9),
+                     Ins(code=37, jt=-2, jf=-3, k=33.5)],
+                16: [Ins(code=32, jt=0, jf=0, k=2),
+                     Ins(code=37, jt=-3, jf=17, k=45.5)],
+                17: [Ins(code=32, jt=0, jf=0, k=1),
+                     Ins(code=37, jt=-2, jf=-3, k=77.0)],
             })
 
     def test_dce(self):
@@ -504,10 +501,10 @@ class TestBpfEnsembleUtils(unittest.TestCase):
         self.assertEqual(
             cfg.nodes(data=True),
             [
-                (0, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(10, 23.4))}),
-                (-2, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))}),
-                (-1, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
-                (-3, {'ann': bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))})
+                (0, {'ann': Node(ty=NodeTy.BRANCH, args=(10, 23.4))}),
+                (-2, {'ann': Node(ty=NodeTy.LEAF, args=(1,))}),
+                (-1, {'ann': Node(ty=NodeTy.EXIT, args=())}),
+                (-3, {'ann': Node(ty=NodeTy.LEAF, args=(0,))})
             ])
 
     def test_construct_node_ret_tys(self):
@@ -517,10 +514,10 @@ class TestBpfEnsembleUtils(unittest.TestCase):
             self.assertEquals(
                 node_ret_tys,
                 {
-                    -3: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,))]),
-                    -2: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))]),
-                    0: set([bpf.Node(ty=bpf.NodeTy.LEAF, args=(0,)),
-                            bpf.Node(ty=bpf.NodeTy.LEAF, args=(1,))])
+                    -3: set([Node(ty=NodeTy.LEAF, args=(0,))]),
+                    -2: set([Node(ty=NodeTy.LEAF, args=(1,))]),
+                    0: set([Node(ty=NodeTy.LEAF, args=(0,)),
+                            Node(ty=NodeTy.LEAF, args=(1,))])
                 })
 
     def test_collapse_cfg(self):
@@ -540,16 +537,16 @@ class TestBpfEnsembleUtils(unittest.TestCase):
             fragments = bpf.construct_fragments(ccfg, node_ret_tys)
             self.assertEqual(
                 fragments, {
-                    -3: [bpf.Ins(code=bpf.BPF_RET | bpf.BPF_K,
+                    -3: [Ins(code=bpf.BPF_RET | bpf.BPF_K,
                                  jt=0, jf=0, k=0)],
-                    -2: [bpf.Ins(code=bpf.BPF_RET | bpf.BPF_K,
+                    -2: [Ins(code=bpf.BPF_RET | bpf.BPF_K,
                                  jt=0, jf=0, k=1)],
                     -1: [],
                     0: [
-                        bpf.Ins(
+                        Ins(
                             code=bpf.BPF_W | bpf.BPF_LD | bpf.BPF_ABS,
                             jt=0, jf=0, k=10),
-                        bpf.Ins(
+                        Ins(
                             code=bpf.BPF_JMP | bpf.BPF_JGT | bpf.BPF_K,
                             jt=-2, jf=-3, k=23.4)
                     ]
@@ -594,17 +591,17 @@ class TestBpfEnsembleUtils(unittest.TestCase):
         self.assertEqual(
             sorted(mcfg.nodes(data=True)),
             [
-                (-3, {'ann': bpf.Node(ty=bpf.NodeTy.ENSEMBLE_LEAF, args=(0,))}),
-                (-2, {'ann': bpf.Node(ty=bpf.NodeTy.ENSEMBLE_LEAF, args=(1,))}),
-                (-1, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
-                (0, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(10, 23.4))}),
-                (1, {'ann': bpf.Node(ty=bpf.NodeTy.ENSEMBLE_LEAF, args=(0,))}),
-                (2, {'ann': bpf.Node(ty=bpf.NodeTy.ENSEMBLE_LEAF, args=(1,))}),
-                (3, {'ann': bpf.Node(ty=bpf.NodeTy.EXIT, args=())}),
-                (4, {'ann': bpf.Node(ty=bpf.NodeTy.BRANCH, args=(10, 23.4))}),
-                (5, {'ann': bpf.Node(ty=bpf.NodeTy.VOTE, args=())}),
-                (6, {'ann': bpf.Node(bpf.NodeTy.LEAF, args=(1,))}),
-                (7, {'ann': bpf.Node(bpf.NodeTy.LEAF, args=(0,))})
+                (-3, {'ann': Node(ty=NodeTy.ENSEMBLE_LEAF, args=(0,))}),
+                (-2, {'ann': Node(ty=NodeTy.ENSEMBLE_LEAF, args=(1,))}),
+                (-1, {'ann': Node(ty=NodeTy.EXIT, args=())}),
+                (0, {'ann': Node(ty=NodeTy.BRANCH, args=(10, 23.4))}),
+                (1, {'ann': Node(ty=NodeTy.ENSEMBLE_LEAF, args=(0,))}),
+                (2, {'ann': Node(ty=NodeTy.ENSEMBLE_LEAF, args=(1,))}),
+                (3, {'ann': Node(ty=NodeTy.EXIT, args=())}),
+                (4, {'ann': Node(ty=NodeTy.BRANCH, args=(10, 23.4))}),
+                (5, {'ann': Node(ty=NodeTy.VOTE, args=())}),
+                (6, {'ann': Node(NodeTy.LEAF, args=(1,))}),
+                (7, {'ann': Node(NodeTy.LEAF, args=(0,))})
             ])
 
     def test_ensemble_fragments(self):
@@ -617,32 +614,32 @@ class TestBpfEnsembleUtils(unittest.TestCase):
         frags = bpf.construct_ensemble_fragments(mcfg)
         self.assertEqual(
             frags,
-            {-3: [bpf.Ins(code=0, jt=0, jf=0, k=15),
-                  bpf.Ins(code=20, jt=0, jf=0, k=1),
-                  bpf.Ins(code=2, jt=0, jf=0, k=15),
-                  bpf.Ins(code=5, jt=0, jf=0, k=-1)],
-             -2: [bpf.Ins(code=0, jt=0, jf=0, k=15),
-                  bpf.Ins(code=4, jt=0, jf=0, k=1),
-                  bpf.Ins(code=2, jt=0, jf=0, k=15),
-                  bpf.Ins(code=5, jt=0, jf=0, k=-1)],
+            {-3: [Ins(code=0, jt=0, jf=0, k=15),
+                  Ins(code=20, jt=0, jf=0, k=1),
+                  Ins(code=2, jt=0, jf=0, k=15),
+                  Ins(code=5, jt=0, jf=0, k=-1)],
+             -2: [Ins(code=0, jt=0, jf=0, k=15),
+                  Ins(code=4, jt=0, jf=0, k=1),
+                  Ins(code=2, jt=0, jf=0, k=15),
+                  Ins(code=5, jt=0, jf=0, k=-1)],
              -1: [],
-             0: [bpf.Ins(code=32, jt=0, jf=0, k=10),
-                 bpf.Ins(code=37, jt=-2, jf=-3, k=23.4)],
-             1: [bpf.Ins(code=0, jt=0, jf=0, k=15),
-                 bpf.Ins(code=20, jt=0, jf=0, k=1),
-                 bpf.Ins(code=2, jt=0, jf=0, k=15),
-                 bpf.Ins(code=5, jt=0, jf=0, k=3)],
-             2: [bpf.Ins(code=0, jt=0, jf=0, k=15),
-                 bpf.Ins(code=4, jt=0, jf=0, k=1),
-                 bpf.Ins(code=2, jt=0, jf=0, k=15),
-                 bpf.Ins(code=5, jt=0, jf=0, k=3)],
+             0: [Ins(code=32, jt=0, jf=0, k=10),
+                 Ins(code=37, jt=-2, jf=-3, k=23.4)],
+             1: [Ins(code=0, jt=0, jf=0, k=15),
+                 Ins(code=20, jt=0, jf=0, k=1),
+                 Ins(code=2, jt=0, jf=0, k=15),
+                 Ins(code=5, jt=0, jf=0, k=3)],
+             2: [Ins(code=0, jt=0, jf=0, k=15),
+                 Ins(code=4, jt=0, jf=0, k=1),
+                 Ins(code=2, jt=0, jf=0, k=15),
+                 Ins(code=5, jt=0, jf=0, k=3)],
              3: [],
-             4: [bpf.Ins(code=32, jt=0, jf=0, k=10),
-                 bpf.Ins(code=37, jt=2, jf=1, k=23.4)],
-             5: [bpf.Ins(code=0, jt=0, jf=0, k=15),
-                 bpf.Ins(code=37, jt=6, jf=7, k=0)],
-             6: [bpf.Ins(code=6, jt=0, jf=0, k=1)],
-             7: [bpf.Ins(code=6, jt=0, jf=0, k=0)]
+             4: [Ins(code=32, jt=0, jf=0, k=10),
+                 Ins(code=37, jt=2, jf=1, k=23.4)],
+             5: [Ins(code=0, jt=0, jf=0, k=15),
+                 Ins(code=37, jt=6, jf=7, k=0)],
+             6: [Ins(code=6, jt=0, jf=0, k=1)],
+             7: [Ins(code=6, jt=0, jf=0, k=0)]
             })
 
 
@@ -658,30 +655,30 @@ class TestBpfEnsembleUtils(unittest.TestCase):
         self.assertEqual(
             inss,
             [
-                bpf.Ins(code=32, jt=0, jf=0, k=10),
-                bpf.Ins(code=37, jt=-2, jf=-3, k=23.4),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=4, jt=0, jf=0, k=1),
-                bpf.Ins(code=2, jt=0, jf=0, k=15),
-                bpf.Ins(code=5, jt=0, jf=0, k=-1),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=20, jt=0, jf=0, k=1),
-                bpf.Ins(code=2, jt=0, jf=0, k=15),
-                bpf.Ins(code=5, jt=0, jf=0, k=-1),
-                bpf.Ins(code=32, jt=0, jf=0, k=10),
-                bpf.Ins(code=37, jt=2, jf=1, k=23.4),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=4, jt=0, jf=0, k=1),
-                bpf.Ins(code=2, jt=0, jf=0, k=15),
-                bpf.Ins(code=5, jt=0, jf=0, k=3),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=20, jt=0, jf=0, k=1),
-                bpf.Ins(code=2, jt=0, jf=0, k=15),
-                bpf.Ins(code=5, jt=0, jf=0, k=3),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=37, jt=6, jf=7, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=1)
+                Ins(code=32, jt=0, jf=0, k=10),
+                Ins(code=37, jt=-2, jf=-3, k=23.4),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=4, jt=0, jf=0, k=1),
+                Ins(code=2, jt=0, jf=0, k=15),
+                Ins(code=5, jt=0, jf=0, k=-1),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=20, jt=0, jf=0, k=1),
+                Ins(code=2, jt=0, jf=0, k=15),
+                Ins(code=5, jt=0, jf=0, k=-1),
+                Ins(code=32, jt=0, jf=0, k=10),
+                Ins(code=37, jt=2, jf=1, k=23.4),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=4, jt=0, jf=0, k=1),
+                Ins(code=2, jt=0, jf=0, k=15),
+                Ins(code=5, jt=0, jf=0, k=3),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=20, jt=0, jf=0, k=1),
+                Ins(code=2, jt=0, jf=0, k=15),
+                Ins(code=5, jt=0, jf=0, k=3),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=37, jt=6, jf=7, k=0),
+                Ins(code=6, jt=0, jf=0, k=0),
+                Ins(code=6, jt=0, jf=0, k=1)
             ])
         self.assertEqual(
             label_offsets,
@@ -702,28 +699,44 @@ class TestBpfEnsembleUtils(unittest.TestCase):
         self.assertEqual(
             inss,
             [
-                bpf.Ins(code=32, jt=0, jf=0, k=10),
-                bpf.Ins(code=37, jt=0, jf=4, k=23.4),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=4, jt=0, jf=0, k=1),
-                bpf.Ins(code=2, jt=0, jf=0, k=15),
-                bpf.Ins(code=5, jt=0, jf=0, k=-1),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=20, jt=0, jf=0, k=1),
-                bpf.Ins(code=2, jt=0, jf=0, k=15),
-                bpf.Ins(code=5, jt=0, jf=0, k=-1),
-                bpf.Ins(code=32, jt=0, jf=0, k=10),
-                bpf.Ins(code=37, jt=0, jf=4, k=23.4),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=4, jt=0, jf=0, k=1),
-                bpf.Ins(code=2, jt=0, jf=0, k=15),
-                bpf.Ins(code=5, jt=0, jf=0, k=3),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=20, jt=0, jf=0, k=1),
-                bpf.Ins(code=2, jt=0, jf=0, k=15),
-                bpf.Ins(code=5, jt=0, jf=0, k=3),
-                bpf.Ins(code=0, jt=0, jf=0, k=15),
-                bpf.Ins(code=37, jt=1, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=0),
-                bpf.Ins(code=6, jt=0, jf=0, k=1)
+                Ins(code=32, jt=0, jf=0, k=10),
+                Ins(code=37, jt=0, jf=4, k=23.4),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=4, jt=0, jf=0, k=1),
+                Ins(code=2, jt=0, jf=0, k=15),
+                Ins(code=5, jt=0, jf=0, k=-1),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=20, jt=0, jf=0, k=1),
+                Ins(code=2, jt=0, jf=0, k=15),
+                Ins(code=5, jt=0, jf=0, k=-1),
+                Ins(code=32, jt=0, jf=0, k=10),
+                Ins(code=37, jt=0, jf=4, k=23.4),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=4, jt=0, jf=0, k=1),
+                Ins(code=2, jt=0, jf=0, k=15),
+                Ins(code=5, jt=0, jf=0, k=3),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=20, jt=0, jf=0, k=1),
+                Ins(code=2, jt=0, jf=0, k=15),
+                Ins(code=5, jt=0, jf=0, k=3),
+                Ins(code=0, jt=0, jf=0, k=15),
+                Ins(code=37, jt=1, jf=0, k=0),
+                Ins(code=6, jt=0, jf=0, k=0),
+                Ins(code=6, jt=0, jf=0, k=1)
             ])
+
+
+    def test_interpret(self):
+        def fold_cfg(t):
+            cfg = bpf.construct_cfg(t, 0.5)
+            node_ret_tys = bpf.construct_node_ret_tys(cfg)
+            return bpf.collapse_cfg(cfg, node_ret_tys)
+        cfgs = [fold_cfg(t) for t in self.ts]
+        mcfg = bpf.merge_cfgs(cfgs)
+        frags = bpf.construct_ensemble_fragments(mcfg)
+        inss, label_offsets = bpf.linearize_ensemble(mcfg, frags)
+        inss = bpf.assemble_ensemble(inss, label_offsets)
+        # result = bpf.interpret(inss, {10: 25})
+        # self.assertEqual(result, 1)
+        # result = bpf.interpret(inss, {10: 20})
+        # self.assertEqual(result, 0)
