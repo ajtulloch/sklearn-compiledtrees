@@ -468,24 +468,24 @@ class TestBpfEnsembleUtils(unittest.TestCase):
         ]
 
     def test_construct_cfg(self):
-        cfgs = [bpf.construct_cfg(t, 0.5) for t in self.ts]
+        cfgs = [bpf.construct_ensemble_cfg(t, 0.5) for t in self.ts]
         for cfg in cfgs:
             self.assertEqual(
                 cfg.edges(data=True),
                 [
-                    (0, -3, {'data': Direction.LEFT}),
-                    (0, -2, {'data': Direction.RIGHT}),
-                    (-2, -1, {}),
-                    (-3, -1, {})
+                    (0, 4, {'data': Direction.LEFT}),
+                    (0, 5, {'data': Direction.RIGHT}),
+                    (4, -1, {}),
+                    (5, -1, {})
                 ])
 
         self.assertEqual(
             cfg.nodes(data=True),
             [
                 (0, {'ann': Node(ty=NodeTy.BRANCH, args=(10, 23.4))}),
-                (-2, {'ann': Node(ty=NodeTy.LEAF, args=(1,))}),
-                (-1, {'ann': Node(ty=NodeTy.EXIT, args=())}),
-                (-3, {'ann': Node(ty=NodeTy.LEAF, args=(0,))})
+                (4, {'ann': Node(ty=NodeTy.ENSEMBLE_LEAF, args=(89, 880))}),
+                (5, {'ann': Node(ty=NodeTy.ENSEMBLE_LEAF, args=(605, 105))}),
+                (-1, {'ann': Node(ty=NodeTy.EXIT, args=())})
             ])
 
     def test_construct_node_ret_tys(self):

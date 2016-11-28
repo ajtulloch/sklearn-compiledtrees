@@ -80,6 +80,35 @@ def construct_cfg(tree, threshold):
     return cfg
 
 
+def construct_ensemble_cfg(tree, threshold):
+    cfg = nx.DiGraph()
+
+    cfg.add_node(EXIT_NODE, ann=EXIT)
+
+    def visit_leaf(node):
+        negatives, positives = tree.value[node].ravel()
+        return Node(ty=NodeTy.ENSEMBLE_LEAF, args=(negatives, positives))
+
+    def visit_inner(node):
+        feature = tree.feature[node]
+        threshold = tree.threshold[node]
+        return Node(ty=NodeTy.BRANCH, args=(feature, threshold))
+
+    def join(node, cur, left, right):
+        log.info("Adding node: %s", )
+        cfg.add_node(node, ann=cur)
+        if left is None and right is None:
+            cfg.add_edge(node, EXIT_NODE)
+            return node
+
+        cfg.add_edge(node, left, data=Direction.LEFT)
+        cfg.add_edge(node, right, data=Direction.RIGHT)
+        return node
+
+    visit(tree, 0, visit_leaf, visit_inner, join)
+    return cfg
+
+
 def construct_node_ret_tys(cfg):
     node_ret_tys = {}
     for n in nx.dfs_postorder_nodes(cfg, 0):
