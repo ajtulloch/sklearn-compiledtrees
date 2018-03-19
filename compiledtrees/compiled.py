@@ -112,17 +112,17 @@ class CompiledRegressionPredictor(RegressorMixin):
         """
         # TODO - is there an established way to check `is_fitted``?
         if isinstance(clf, DecisionTreeRegressor):
-            return clf.n_outputs_ == 1 and clf.n_classes_ == 1 \
-                and clf.tree_ is not None
+            return (hasattr(clf, 'n_outputs_') and
+                    clf.n_outputs_ == 1 and
+                    hasattr(clf, 'n_classes_') and
+                    clf.n_classes_ == 1 and
+                    clf.tree_ is not None)
 
-        if isinstance(clf, GradientBoostingRegressor):
-            return clf.estimators_.size and all(cls.compilable(e)
-                                                for e in clf.estimators_.flat)
-
-        if isinstance(clf, ForestRegressor):
-            estimators = np.asarray(clf.estimators_)
-            return estimators.size and all(cls.compilable(e)
-                                           for e in estimators.flat)
+        if isinstance(clf, (GradientBoostingRegressor, ForestRegressor)):
+            return (hasattr(clf, 'estimators_') and
+                    np.asarray(clf.estimators_).size and
+                    all(cls.compilable(e)
+                        for e in np.asarray(clf.estimators_).flat))
         return False
 
     def predict(self, X):
