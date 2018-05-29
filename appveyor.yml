@@ -25,15 +25,21 @@ environment:
     #  PYTHON_ARCH: "32"
     #  CONDA_PY: "35"
 
-    # - PYTHON: "C:\\Python35_64"
-    #   PYTHON_VERSION: "3.5"
-    #   PYTHON_ARCH: "64"
-    #   CONDA_PY: "35"
+    - PYTHON: "C:\\Python35_64"
+      PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "35"
+
+    - PYTHON: "C:\\Python36_64"
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "36"
 
 install:
     # https://www.appveyor.com/docs/installed-software#python
     - if "%PYTHON_VERSION%" == "3.4" set "BASE_PYTHON_VERSION=3"
     - if "%PYTHON_VERSION%" == "3.5" set "BASE_PYTHON_VERSION=35"
+    - if "%PYTHON_VERSION%" == "3.6" set "BASE_PYTHON_VERSION=36"
     - if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
     # These are already installed on appveyor.  Update them.
     - set "CONDA_ROOT=C:\Miniconda%BASE_PYTHON_VERSION%%ARCH_LABEL%"
@@ -48,7 +54,7 @@ install:
     - conda create --yes --name test_env python=%PYTHON_VERSION%
     - activate test_env
     - conda install -q  six numpy scikit-learn joblib nose
-    - conda install -q -c mwojcikowski mingwpy dlfcn
+    - conda install -q -c msys2 m2w64-toolchain m2w64-dlfcn pywin32
     - pip install coverage codecov
     - set "CXX=gcc -pthread"
     - python setup.py build_ext --inplace --compiler=mingw32 -llibdl
