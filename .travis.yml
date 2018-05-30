@@ -3,6 +3,7 @@ language: python
 python:
     - "2.7"
     - "3.5"
+    - "3.6"
 before_install:
     - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
@@ -11,9 +12,9 @@ before_install:
     - conda create --name test_env --yes python=$TRAVIS_PYTHON_VERSION
     - source activate test_env
     - conda install --yes scipy nose scikit-learn joblib six
+    - pip install coverage codecov
 install:
     - python setup.py build_ext --inplace
-    - pip install coverage codecov
 script:
     - make test-coverage
 after_success:
