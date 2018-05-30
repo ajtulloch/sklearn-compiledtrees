@@ -21,12 +21,13 @@ Or to get the latest development version:
 
 sklearn-compiledtrees has been tested to work on OS X, Linux and Windows.
 
-Installing on Windows requires MinGW and dlfcn-win32_,
+Installing on Windows requires GCC compiler and dlfcn-win32_,
 setting `CXX` environment variable (`set "CXX=gcc -pthread"` for CMD),
-and manual installation from source direcory.
+and manual installation from source directory. Using msys2 distribution in conda
+is strongly recommended.
 
 .. code:: bash
-
+    conda install -c msys2 m2w64-toolchain m2w64-dlfcn pywin32
     python setup.py build_ext --compiler=mingw32 -llibdl
     python setup.py install
 
