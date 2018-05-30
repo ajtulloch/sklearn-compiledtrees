@@ -26,7 +26,10 @@ ALWAYS_INLINE = "__attribute__((__always_inline__))"
 
 class CodeGenerator(object):
     def __init__(self):
-        self._file = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.cpp', delete=delete_files)
+        self._file = tempfile.NamedTemporaryFile(mode='w+b',
+                                                 prefix='compiledtrees_',
+                                                 suffix='.cpp',
+                                                 delete=delete_files)
         self._indent = 0
 
     @property
@@ -93,6 +96,7 @@ def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
             recur(0)
     return gen.file
 
+
 def _gen_tree(i, tree):
     """
     Generates cpp code for i'th tree.
@@ -101,6 +105,7 @@ def _gen_tree(i, tree):
     name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
     gen_tree = CodeGenerator()
     return code_gen_tree(tree, name, gen_tree)
+
 
 def code_gen_ensemble(trees, individual_learner_weight, initial_value,
                       gen=None, n_jobs=1):
@@ -155,7 +160,7 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
     if gen is None:
         gen = CodeGenerator()
 
-    tree_files =[_gen_tree(i, tree) for i, tree in enumerate(trees)]
+    tree_files = [_gen_tree(i, tree) for i, tree in enumerate(trees)]
 
     with gen.bracketed('extern "C" {', "}"):
         # add dummy definitions if you will compile in parallel
@@ -175,19 +180,26 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
             gen.write("return result;")
     return tree_files + [gen.file]
 
+
 def _compile(cpp_f):
     if CXX_COMPILER is None:
-        raise Exception("CXX compiler was not found. You should set CXX environmental variable")
-    o_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.o', delete=delete_files)
+        raise Exception("CXX compiler was not found. You should set CXX "
+                        "environmental variable")
+    o_f = tempfile.NamedTemporaryFile(mode='w+b',
+                                      prefix='compiledtrees_',
+                                      suffix='.o',
+                                      delete=delete_files)
     if platform.system() == 'Windows':
         o_f.close()
     _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, "-O3", "-pipe"])
     return o_f
 
+
 def _call(args):
     DEVNULL = open(os.devnull, 'w')
     subprocess.check_call(" ".join(args),
                           shell=True, stdout=DEVNULL, stderr=DEVNULL)
+
 
 def compile_code_to_object(files, n_jobs=1):
     # if ther is a single file then create single element list
@@ -200,9 +212,13 @@ def compile_code_to_object(files, n_jobs=1):
         for f in files:
             f.close()
 
-    o_files = Parallel(n_jobs=n_jobs, backend='threading')(delayed(_compile)(f.name) for f in files)
+    o_files = (Parallel(n_jobs=n_jobs, backend='threading')
+               (delayed(_compile)(f.name) for f in files))
 
-    so_f = tempfile.NamedTemporaryFile(prefix='compiledtrees_', suffix='.so', delete=delete_files)
+    so_f = tempfile.NamedTemporaryFile(mode='w+b',
+                                       prefix='compiledtrees_',
+                                       suffix='.so',
+                                       delete=delete_files)
     # Close files on Windows to avoid permission errors
     if platform.system() == 'Windows':
         so_f.close()
@@ -210,11 +226,15 @@ def compile_code_to_object(files, n_jobs=1):
     # link trees
     if platform.system() == 'Windows':
         # a hack to overcome large RFs on windows and CMD 9182 chaacters limit
-        list_ofiles = tempfile.NamedTemporaryFile(prefix='list_ofiles_', delete=delete_files)
+        list_ofiles = tempfile.NamedTemporaryFile(mode='w+b',
+                                                  prefix='list_ofiles_',
+                                                  delete=delete_files)
         for f in o_files:
-            list_ofiles.write(f.name.replace('\\', '\\\\') + "\r")
+            list_ofiles.write((f.name.replace('\\', '\\\\') +
+                               "\r").encode('latin1'))
         list_ofiles.close()
-        _call([CXX_COMPILER, "-shared", "@%s" % list_ofiles.name, "-fPIC", "-flto", "-o", so_f.name, "-O3", "-pipe"])
+        _call([CXX_COMPILER, "-shared", "@%s" % list_ofiles.name, "-fPIC",
+               "-flto", "-o", so_f.name, "-O3", "-pipe"])
 
         # cleanup files
         for f in o_files:
@@ -224,7 +244,7 @@ def compile_code_to_object(files, n_jobs=1):
         os.unlink(list_ofiles.name)
     else:
         _call([CXX_COMPILER, "-shared"] +
-              [f.name for f in o_files]  +
+              [f.name for f in o_files] +
               ["-fPIC", "-flto", "-o", so_f.name, "-O3", "-pipe"])
 
     return so_f

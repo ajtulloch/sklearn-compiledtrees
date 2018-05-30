@@ -3,6 +3,8 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import six
+
 from sklearn.base import RegressorMixin
 from sklearn.tree.tree import DecisionTreeRegressor, DTYPE, DOUBLE
 from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor
@@ -18,6 +20,7 @@ if platform.system() == 'Windows':
     delete_files = False
 else:
     delete_files = True
+
 
 class CompiledRegressionPredictor(RegressorMixin):
     """Class to construct a compiled predictor from a previously trained
@@ -44,7 +47,12 @@ class CompiledRegressionPredictor(RegressorMixin):
 
     def __setstate__(self, state):
         import tempfile
-        self._so_f_object = tempfile.NamedTemporaryFile(mode='w+b', prefix='compiledtrees_', suffix='.so', delete=delete_files)
+        self._so_f_object = tempfile.NamedTemporaryFile(mode='w+b',
+                                                        prefix='compiledtrees_',
+                                                        suffix='.so',
+                                                        delete=delete_files)
+        if isinstance(state["so_f"], six.text_type):
+            state["so_f"] = state["so_f"].encode('latin1')
         self._so_f_object.write(state["so_f"])
         self._so_f_object.flush()
         self._so_f = self._so_f_object.name
