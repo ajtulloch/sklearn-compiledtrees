@@ -13,6 +13,7 @@ def configuration(parent_package="", top_path=None):
                          sources=["_compiled.c"],
                          include_dirs=[numpy.get_include()],
                          libraries=libraries,
+                         extra_link_args=["-Wl,--allow-multiple-definition"],
                          extra_compile_args=["-O3", "-Wno-unused-function"])
     config.add_subpackage("tests")
     return config
