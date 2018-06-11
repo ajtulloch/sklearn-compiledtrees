@@ -1,6 +1,7 @@
 cimport cython
 import numpy as np
 cimport numpy as np
+from cython.parallel import prange
 np.import_array()
 
 cdef extern from "dlfcn.h":
@@ -8,8 +9,6 @@ cdef extern from "dlfcn.h":
   void* dlsym(void*, const char* )
   char* dlerror()
   void dlclose(void* handle)
-
-cdef extern from "dlfcn.h":
   cdef long RTLD_NOW
 
 cdef class CompiledPredictor:
@@ -18,7 +17,7 @@ cdef class CompiledPredictor:
         if handle == NULL:
             raise ValueError("Could not find compiled evaluation file")
         self.handle = handle
-        cdef void* func = dlsym(self.handle, symbol)
+        cdef void* func = <DOUBLE_t (*)(float*, int) nogil> dlsym(self.handle, symbol)
         if func == NULL:
             raise ValueError("Could not find compiled evaluation function in file")
         self.func = func
@@ -30,9 +29,21 @@ cdef class CompiledPredictor:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def predict(self,
-                np.ndarray[DTYPE_t, ndim=2, mode='c'] X,
-                np.ndarray[DOUBLE_t, ndim=1, mode='c'] output):
+                float[:, :] X,
+                double[:] output,
+                int n_jobs):
+        func = <double (*)(float*) nogil> self.func
         cdef Py_ssize_t num_samples = X.shape[0]
-        for i in range(num_samples):
-            output[i] = ((<DOUBLE_t (*)(DTYPE_t*)> self.func))(&X[i, 0])
+        cdef int i
+        cdef int n_jobs_samples = 1
+
+        if num_samples > 1:
+            n_jobs_samples = n_jobs
+
+        for i in prange(num_samples,
+                        num_threads=n_jobs_samples,
+                        nogil=True,
+                        schedule="static"):
+            output[i] = func(&X[i, 0])
+
         return output

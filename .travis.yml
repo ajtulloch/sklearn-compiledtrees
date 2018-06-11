@@ -1,18 +1,29 @@
 sudo: false
-language: python
-python:
-    - "2.7"
-    - "3.5"
-    - "3.6"
+language: c
+# compiler:
+#     - gcc
+#     - clang
+os:
+    - osx
+    - linux
+env:
+    matrix:
+        - CONDA_PY=2.7
+        - CONDA_PY=3.5
+        - CONDA_PY=3.6
 before_install:
-    - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    - ulimit -n 2048
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then CONDA_FLAVOUR='Linux'; else CONDA_FLAVOUR='MacOSX'; fi;
+    - wget http://repo.continuum.io/miniconda/Miniconda3-latest-${CONDA_FLAVOUR}-x86_64.sh -O miniconda.sh;
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
     - conda update --yes conda
-    - conda create --name test_env --yes python=$TRAVIS_PYTHON_VERSION
+    - conda create --name test_env --yes python=$CONDA_PY
     - source activate test_env
+    # - if [[ "$CC" == "gcc" && "$TRAVIS_OS_NAME" == "osx" ]]; then conda install --yes gcc; fi;
     - conda install --yes scipy nose scikit-learn joblib six
     - pip install coverage codecov
+    - $CC --version
 install:
     - python setup.py build_ext --inplace
 script:

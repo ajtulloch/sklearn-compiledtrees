@@ -2,15 +2,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+import os
 from sklearn import ensemble, tree
 from compiledtrees.compiled import CompiledRegressionPredictor
-from sklearn.utils.testing import \
-    assert_array_almost_equal, assert_raises, assert_equal, assert_allclose, \
-    assert_array_equal
+from compiledtrees.code_gen import OPENMP_SUPPORT
+from sklearn.utils.testing import (assert_array_almost_equal,
+                                   assert_raises, assert_equal,
+                                   assert_allclose,
+                                   assert_array_equal,
+                                   assert_greater)
 import numpy as np
 import unittest
 import tempfile
 import pickle
+from datetime import datetime
 from six.moves import cPickle, zip
 
 REGRESSORS = {
@@ -93,10 +98,10 @@ class TestCompiledTrees(unittest.TestCase):
         y2 = np.random.normal(size=num_examples)
 
         rf1 = ensemble.RandomForestRegressor()
-        rf1.fit(X1,y1)
+        rf1.fit(X1, y1)
 
         rf2 = ensemble.RandomForestRegressor()
-        rf2.fit(X2,y2)
+        rf2.fit(X2, y2)
 
         rf1_compiled = CompiledRegressionPredictor(rf1)
         rf2_compiled = CompiledRegressionPredictor(rf2)
@@ -113,10 +118,51 @@ class TestCompiledTrees(unittest.TestCase):
         y1 = np.random.normal(size=num_examples)
 
         rf1 = ensemble.RandomForestRegressor(n_estimators=500, max_depth=2)
-        rf1.fit(X1,y1)
+        rf1.fit(X1, y1)
 
         rf1_compiled = CompiledRegressionPredictor(rf1)
         assert_array_almost_equal(rf1.predict(X1), rf1_compiled.predict(X1), decimal=10)
+
+    def test_openmp(self):
+        num_features = 200
+        num_examples = 1000
+
+        X1 = np.random.normal(size=(num_examples, num_features))
+        X1 = X1.astype(np.float32)
+
+        # X2 = np.random.normal(size=(1, num_features))
+        # X2 = X2.astype(np.float32)
+
+        y1 = np.random.normal(size=num_examples)
+
+        rf1 = ensemble.RandomForestRegressor(n_estimators=200)
+        rf1.fit(X1, y1)
+
+        rf1_compiled = CompiledRegressionPredictor(rf1, n_jobs=2)
+        assert_array_almost_equal(rf1.predict(X1),
+                                  rf1_compiled.predict(X1, n_jobs=2),
+                                  decimal=10)
+        assert_array_almost_equal(rf1_compiled.predict(X1, n_jobs=1),
+                                  rf1_compiled.predict(X1, n_jobs=2),
+                                  decimal=10)
+
+        if OPENMP_SUPPORT:
+            # On travis/appveyor check for any speedup Be less generous otherwise.
+            if 'TRAVIS' in os.environ or 'APPVEYOR' in os.environ:
+                target = 0.9
+            else:
+                target = 0.6
+            # multi sample scaling - parallel samples
+            start = datetime.now()
+            rf1_compiled.predict(X1, n_jobs=1)
+            t_single = (datetime.now() - start).microseconds
+
+            start = datetime.now()
+            rf1_compiled.predict(X1, n_jobs=2)
+            t_double = (datetime.now() - start).microseconds
+
+            # ensure almost linear speedup, 0.5 = liear
+            assert_greater(target, t_double / t_single)  # Parallel samples
 
     def test_predictions_with_invalid_input(self):
         num_features = 100

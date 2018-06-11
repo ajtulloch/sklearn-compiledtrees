@@ -20,6 +20,16 @@ else:
     CXX_COMPILER = sysconfig.get_config_var('CXX')
     delete_files = True
 
+# detect OpenMP support
+if platform.system() == 'Darwin':
+    c_ver = subprocess.check_output([CXX_COMPILER, '--version']).decode('ascii')
+    if c_ver.find('clang') >= 0:  # Xcode clang does not support OpenMP
+        OPENMP_SUPPORT = False
+    else:  # GCC supports OpenMP
+        OPENMP_SUPPORT = True
+else:
+    OPENMP_SUPPORT = True
+
 EVALUATE_FN_NAME = "evaluate"
 ALWAYS_INLINE = "__attribute__((__always_inline__))"
 
