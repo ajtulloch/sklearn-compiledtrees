@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import os
 from sklearn import ensemble, tree
 from compiledtrees.compiled import CompiledRegressionPredictor
+from compiledtrees.code_gen import OPENMP_SUPPORT
 from sklearn.utils.testing import (assert_array_almost_equal,
                                    assert_raises, assert_equal,
                                    assert_allclose,
@@ -145,22 +146,23 @@ class TestCompiledTrees(unittest.TestCase):
                                   rf1_compiled.predict(X1, n_jobs=2),
                                   decimal=10)
 
-        # On travis/appveyor check for any speedup Be less generous otherwise.
-        if 'TRAVIS' in os.environ or 'APPVEYOR' in os.environ:
-            target = 0.9
-        else:
-            target = 0.6
-        # multi sample scaling - parallel samples
-        start = datetime.now()
-        rf1_compiled.predict(X1, n_jobs=1)
-        t_single = (datetime.now() - start).microseconds
+        if OPENMP_SUPPORT:
+            # On travis/appveyor check for any speedup Be less generous otherwise.
+            if 'TRAVIS' in os.environ or 'APPVEYOR' in os.environ:
+                target = 0.9
+            else:
+                target = 0.6
+            # multi sample scaling - parallel samples
+            start = datetime.now()
+            rf1_compiled.predict(X1, n_jobs=1)
+            t_single = (datetime.now() - start).microseconds
 
-        start = datetime.now()
-        rf1_compiled.predict(X1, n_jobs=2)
-        t_double = (datetime.now() - start).microseconds
+            start = datetime.now()
+            rf1_compiled.predict(X1, n_jobs=2)
+            t_double = (datetime.now() - start).microseconds
 
-        # ensure almost linear speedup, 0.5 = liear
-        assert_greater(target, t_double / t_single)  # Parallel samples
+            # ensure almost linear speedup, 0.5 = liear
+            assert_greater(target, t_double / t_single)  # Parallel samples
 
     def test_predictions_with_invalid_input(self):
         num_features = 100
