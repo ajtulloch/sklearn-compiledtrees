@@ -85,8 +85,13 @@ class CompiledRegressionPredictor(BaseCompiledPredictor, RegressorMixin):
             n_features = clf.n_features_
 
             # hack to get the initial (prior) on the decision tree.
-            initial_value = clf._init_decision_function(
-                np.zeros(shape=(1, n_features))).item((0, 0))
+            if hasattr(clf, '_raw_predict_init'):
+                initial_value = clf._raw_predict_init(
+                    np.zeros(shape=(1, n_features))).item((0, 0))
+            else:
+                # older scikit-learn
+                initial_value = clf._init_decision_function(
+                    np.zeros(shape=(1, n_features))).item((0, 0))
 
             files = cg.code_gen_ensemble_regressor(
                 trees=[e.tree_ for e in clf.estimators_.flat],
