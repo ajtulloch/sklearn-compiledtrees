@@ -50,7 +50,7 @@ class CodeGenerator(object):
         self.write(postamble)
 
 
-def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
+def code_gen_regressor_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
     """
     Generates C code representing the evaluation of a tree.
 
@@ -97,18 +97,18 @@ def code_gen_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None):
     return gen.file
 
 
-def _gen_tree(i, tree):
+def _gen_regressor_tree(i, tree):
     """
     Generates cpp code for i'th tree.
-    Moved out of code_gen_ensemble scope for parallelization.
+    Moved out of code_gen_ensemble_regressor scope for parallelization.
     """
     name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
     gen_tree = CodeGenerator()
-    return code_gen_tree(tree, name, gen_tree)
+    return code_gen_regressor_tree(tree, name, gen_tree)
 
 
-def code_gen_ensemble(trees, individual_learner_weight, initial_value,
-                      gen=None, n_jobs=1):
+def code_gen_ensemble_regressor(trees, individual_learner_weight, initial_value,
+                                gen=None, n_jobs=1):
     """
     Writes code similar to:
 
@@ -160,7 +160,7 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
     if gen is None:
         gen = CodeGenerator()
 
-    tree_files = [_gen_tree(i, tree) for i, tree in enumerate(trees)]
+    tree_files = [_gen_regressor_tree(i, tree) for i, tree in enumerate(trees)]
 
     with gen.bracketed('extern "C" {', "}"):
         # add dummy definitions if you will compile in parallel
@@ -178,6 +178,106 @@ def code_gen_ensemble(trees, individual_learner_weight, initial_value,
                     weight=individual_learner_weight)
                 gen.write(increment)
             gen.write("return result;")
+    return tree_files + [gen.file]
+
+
+# classifier code goes below
+def code_gen_classifier_tree(tree, evaluate_fn=EVALUATE_FN_NAME, gen=None, weight=1.):
+    """
+    Generates C code representing the evaluation of a tree.
+
+    Writes code similar to:
+    ```
+        extern "C" {
+          __attribute__((__always_inline__)) double evaluate(float* f, double* o) {
+            if (f[9] <= 0.175931170583) {
+              o[0] = 0;
+              o[1] = 0.7;
+            }
+            else {
+              o[0] = 0.3;
+              o[1] = 0;
+            }
+          }
+        }
+    ```
+
+    to the given CodeGenerator object.
+    """
+    if gen is None:
+        gen = CodeGenerator()
+
+    def recur(node):
+        if tree.children_left[node] == -1:
+            assert tree.value[node].shape[0] == 1
+            n_leaf_samples = tree.value[node].sum()
+            assert n_leaf_samples > 0
+            for i, val in enumerate(tree.value[node][0]):
+                gen.write("o[{i}] += {val};".format(i=i, val=float(val)*weight/n_leaf_samples))
+            return
+
+        branch = "if (f[{feature}] <= {threshold}f) {{".format(
+            feature=tree.feature[node],
+            threshold=tree.threshold[node])
+        with gen.bracketed(branch, "}"):
+            recur(tree.children_left[node])
+
+        with gen.bracketed("else {", "}"):
+            recur(tree.children_right[node])
+
+    with gen.bracketed('extern "C" {', "}"):
+        fn_decl = "{inline} void {name}(float* f, double* o) {{".format(
+            inline=ALWAYS_INLINE,
+            name=evaluate_fn)
+        with gen.bracketed(fn_decl, "}"):
+            recur(0)
+    return gen.file
+
+
+def _gen_classifier_tree(i, tree, weight):
+    """
+    Generates cpp code for i'th tree.
+    Moved out of code_gen_ensemble_regressor scope for parallelization.
+    """
+    name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
+    gen_tree = CodeGenerator()
+    return code_gen_classifier_tree(tree, name, gen_tree, weight)
+
+
+def code_gen_ensemble_classifier(trees, individual_learner_weight, initial_value,
+                                gen=None, n_jobs=1):
+    """
+    Writes code similar to:
+
+    ```
+    extern "C" {
+      void evaluate(float* f, double* probas) {
+        evaluate_partial_0(f, probas[0], 0.1);
+        votes[(int) evaluate_partial_1(f)] += 0.1;
+      }
+    }
+    ```
+
+    to the given CodeGenerator object.
+    """
+    if gen is None:
+        gen = CodeGenerator()
+
+    tree_files = [_gen_classifier_tree(i, tree, individual_learner_weight) for i, tree in enumerate(trees)]
+
+    with gen.bracketed('extern "C" {', "}"):
+        # add dummy definitions if you will compile in parallel
+        for i, tree in enumerate(trees):
+            name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
+            gen.write("void {name}(float* f, double* probas);".format(name=name)) #FIXME: can this be int?
+
+        fn_decl = "void {name}(float* f, double* probas) {{".format(name=EVALUATE_FN_NAME)
+        with gen.bracketed(fn_decl, "}"):
+            for i, _ in enumerate(trees):
+                increment = "{name}_{index}(f, probas);".format(
+                    name=EVALUATE_FN_NAME,
+                    index=i)
+                gen.write(increment)
     return tree_files + [gen.file]
 
 
