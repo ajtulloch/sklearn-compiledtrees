@@ -10,6 +10,7 @@ import os
 import subprocess
 import tempfile
 from joblib import Parallel, delayed
+from compiledtrees.utils import convert_to_quasi_float
 
 import platform
 
@@ -279,6 +280,77 @@ def code_gen_ensemble_classifier(trees, individual_learner_weight, initial_value
                     index=i)
                 gen.write(increment)
     return tree_files + [gen.file]
+
+
+# Quasi-float classifier code goes below
+
+def code_gen_ensemble_classifier_quasi_float(trees, individual_learner_weight, generator=None):
+    if generator is None:
+        generator = CodeGenerator()
+
+    with generator.bracketed('extern "C" {', "}"):
+        for i, tree in enumerate(trees):
+            function_name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
+            generator.write("void {name}(int* f, int* probas);".format(name=function_name))
+
+        function_declare = "void {name}(int* f, int* probas) {{".format(name=EVALUATE_FN_NAME)
+        with generator.bracketed(function_declare, "}"):
+            for i, _ in enumerate(trees):
+                increment = "{name}_{index}(f, probas);".format(
+                    name=EVALUATE_FN_NAME,
+                    index=i
+                )
+                generator.write(increment)
+
+    tree_files = [
+        gen_classifier_tree_quasi_float(i, tree, individual_learner_weight)
+        for i, tree in enumerate(trees)
+    ]
+    tree_files.append(generator.file)
+
+    return tree_files
+
+
+def gen_classifier_tree_quasi_float(i, tree, weight):
+    name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
+    gen_tree = CodeGenerator()
+    return code_gen_classifier_tree_quasi_float(tree, name, gen_tree, weight)
+
+
+def code_gen_classifier_tree_quasi_float(tree, evaluate_fn=EVALUATE_FN_NAME,
+                                         generator=None, weight=1.):
+    if generator is None:
+        generator = CodeGenerator()
+
+    def recur(node):
+        if tree.children_left[node] == -1:
+            assert tree.value[node].shape[0] == 1
+            n_leaf_samples = tree.value[node].sum()
+            assert n_leaf_samples > 0
+            for i, val in enumerate(tree.value[node][0]):
+                quasi_val = convert_to_quasi_float(float(val) * weight / n_leaf_samples)
+                generator.write("o[{i}] += {val};".format(i=i, val=quasi_val))
+            return
+
+        branch = "if (f[{feature}] <= {threshold}) {{".format(
+            feature=tree.feature[node],
+            threshold=convert_to_quasi_float(tree.threshold[node])
+        )
+        with generator.bracketed(branch, "}"):
+            recur(tree.children_left[node])
+
+        with generator.bracketed("else {", "}"):
+            recur(tree.children_right[node])
+
+    with generator.bracketed('extern "C" {', "}"):
+        fn_decl = "{inline} void {name}(int* f, int* o) {{".format(
+            inline=ALWAYS_INLINE,
+            name=evaluate_fn
+        )
+        with generator.bracketed(fn_decl, "}"):
+            recur(0)
+
+    return generator.file
 
 
 def _compile(cpp_f):

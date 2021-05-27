@@ -52,3 +52,16 @@ cdef class CompiledClassifier(BaseCompiledPredictor):
         for i in range(num_samples):
             (<void (*)(DTYPE_t*, DOUBLE_t*)> self.func)(&X[i, 0], &output[i, 0])
         return output
+
+
+cdef class CompiledClassifierQuasiFloat(BaseCompiledPredictor):
+    @cython.nonecheck(False)
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def predict_proba(self,
+                      np.ndarray[INT_t, ndim=2, mode='c'] X,
+                      np.ndarray[INT_t, ndim=2, mode='c'] output):
+        cdef Py_ssize_t num_samples = X.shape[0]
+        for i in range(num_samples):
+            (<void (*)(INT_t*, INT_t*)> self.func)(&X[i, 0], &output[i, 0])
+        return output
