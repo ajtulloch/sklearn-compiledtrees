@@ -8,9 +8,8 @@ from distutils import sysconfig
 import contextlib
 import os
 import subprocess
-import tempfile
 from joblib import Parallel, delayed
-from compiledtrees.utils import convert_to_quasi_float
+from compiledtrees.utils import convert_to_quasi_float, temp_file_factory, gcc_opt_level
 
 import platform
 
@@ -27,10 +26,7 @@ ALWAYS_INLINE = "__attribute__((__always_inline__))"
 
 class CodeGenerator(object):
     def __init__(self):
-        self._file = tempfile.NamedTemporaryFile(mode='w+b',
-                                                 prefix='compiledtrees_',
-                                                 suffix='.cpp',
-                                                 delete=delete_files)
+        self._file = temp_file_factory.get_file(suffix='.cpp')
         self._indent = 0
 
     @property
@@ -357,13 +353,11 @@ def _compile(cpp_f):
     if CXX_COMPILER is None:
         raise Exception("CXX compiler was not found. You should set CXX "
                         "environmental variable")
-    o_f = tempfile.NamedTemporaryFile(mode='w+b',
-                                      prefix='compiledtrees_',
-                                      suffix='.o',
-                                      delete=delete_files)
+
+    o_f = temp_file_factory.get_file(suffix='.o')
     if platform.system() == 'Windows':
         o_f.close()
-    _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, "-O3", "-pipe"])
+    _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, gcc_opt_level, "-pipe"])
     return o_f
 
 
@@ -387,10 +381,7 @@ def compile_code_to_object(files, n_jobs=1):
     o_files = (Parallel(n_jobs=n_jobs, backend='threading')
                (delayed(_compile)(f.name) for f in files))
 
-    so_f = tempfile.NamedTemporaryFile(mode='w+b',
-                                       prefix='compiledtrees_',
-                                       suffix='.so',
-                                       delete=delete_files)
+    so_f = temp_file_factory.get_file(suffix='.so')
     # Close files on Windows to avoid permission errors
     if platform.system() == 'Windows':
         so_f.close()
@@ -398,15 +389,14 @@ def compile_code_to_object(files, n_jobs=1):
     # link trees
     if platform.system() == 'Windows':
         # a hack to overcome large RFs on windows and CMD 9182 chaacters limit
-        list_ofiles = tempfile.NamedTemporaryFile(mode='w+b',
-                                                  prefix='list_ofiles_',
-                                                  delete=delete_files)
+        list_ofiles = temp_file_factory.get_file(prefix='list_ofiles_')
+
         for f in o_files:
             list_ofiles.write((f.name.replace('\\', '\\\\') +
                                "\r").encode('latin1'))
         list_ofiles.close()
         _call([CXX_COMPILER, "-shared", "@%s" % list_ofiles.name, "-fPIC",
-               "-flto", "-o", so_f.name, "-O3", "-pipe"])
+               "-flto", "-o", so_f.name, gcc_opt_level, "-pipe"])
 
         # cleanup files
         for f in o_files:
@@ -417,6 +407,6 @@ def compile_code_to_object(files, n_jobs=1):
     else:
         _call([CXX_COMPILER, "-shared"] +
               [f.name for f in o_files] +
-              ["-fPIC", "-flto", "-o", so_f.name, "-O3", "-pipe"])
+              ["-fPIC", "-flto", "-o", so_f.name, gcc_opt_level, "-pipe"])
 
     return so_f

@@ -20,7 +20,7 @@ except ImportError:
 
 from compiledtrees import _compiled
 from compiledtrees import code_gen as cg
-from compiledtrees.utils import convert_to_quasi_float, convert_from_quasi_float
+from compiledtrees.utils import convert_to_quasi_float, convert_from_quasi_float, temp_file_factory
 import numpy as np
 
 import platform
@@ -90,11 +90,8 @@ class BaseCompiledPredictor(object):
         return dict(n_features=self._n_features, so_f=open(self._so_f, 'rb').read())
 
     def __setstate__(self, state):
-        import tempfile
-        self._so_f_object = tempfile.NamedTemporaryFile(mode='w+b',
-                                                        prefix='compiledtrees_',
-                                                        suffix='.so',
-                                                        delete=delete_files)
+        self._so_f_object = temp_file_factory.get_file(suffix='.so')
+
         if isinstance(state["so_f"], six.text_type):
             state["so_f"] = state["so_f"].encode('latin1')
         self._so_f_object.write(state["so_f"])
