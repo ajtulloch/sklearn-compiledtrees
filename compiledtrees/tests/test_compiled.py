@@ -3,7 +3,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from sklearn import ensemble, tree
-from compiledtrees.compiled import CompiledRegressionPredictor, CompiledClassifierPredictor
+from compiledtrees.compiled import (
+    CompiledRegressionPredictor,
+    CompiledClassifierPredictor,
+    CompiledQuasiFloatClassifier
+)
 from numpy.testing import (
     assert_array_almost_equal,
     assert_raises,
@@ -48,6 +52,8 @@ def assert_equal_predictions(cls, X, y, kind='regressor'):
         compiled = CompiledRegressionPredictor(clf)
     elif kind == 'classifier':
         compiled = CompiledClassifierPredictor(clf)
+    elif kind == 'classifier_quasi_float':
+        compiled = CompiledQuasiFloatClassifier(clf)
     else:
         raise ValueError('Unsupported type "%s"' % kind)
 
@@ -75,16 +81,15 @@ def assert_equal_predictions(cls, X, y, kind='regressor'):
         assert_array_almost_equal(p1, p2, decimal=10)
 
 
-class TestCompiledTreesClassifier(unittest.TestCase):
-    def test_rejects_unfitted_classifiers_as_compilable(self):
-        for cls in CLASSIFIERS:
-            assert_equal(CompiledClassifierPredictor.compilable(cls()), False)
-            assert_raises(ValueError, CompiledRegressionPredictor, cls())
+class BaseTestClassifier(object):
+    """A base class for both regular and quasi-float
+    compiled classifiers. Not to be run directly."""
 
-    def test_rejects_regressors_as_compilable(self):
-        for cls in REGRESSORS | UNSUPPORTED_CLASSIFIERS:
-            assert_equal(CompiledClassifierPredictor.compilable(cls()), False)
-            assert_raises(ValueError, CompiledRegressionPredictor, cls())
+    def get_compiled_classifier(self, uncompiled_classifier):
+        raise NotImplementedError
+
+    def get_classifier_label(self):
+        raise NotImplementedError
 
     def test_correct_predictions(self):
         num_features = 20
@@ -94,7 +99,7 @@ class TestCompiledTreesClassifier(unittest.TestCase):
         X = X.astype(np.float32)
         y = np.random.randint(0, num_classes, size=num_examples)
         for cls in CLASSIFIERS:
-            assert_equal_predictions(cls, X, y, kind='classifier')
+            assert_equal_predictions(cls, X, y, kind=self.get_classifier_label())
 
     def test_few_compiled(self):
         num_features = 20
@@ -115,8 +120,8 @@ class TestCompiledTreesClassifier(unittest.TestCase):
         rf2 = ensemble.RandomForestClassifier()
         rf2.fit(X2, y2)
 
-        rf1_compiled = CompiledClassifierPredictor(rf1)
-        rf2_compiled = CompiledClassifierPredictor(rf2)
+        rf1_compiled = self.get_compiled_classifier(rf1)
+        rf2_compiled = self.get_compiled_classifier(rf2)
 
         assert_array_almost_equal(rf1.predict(X1), rf1_compiled.predict(X1), decimal=10)
         assert_array_almost_equal(rf2.predict(X2), rf2_compiled.predict(X2), decimal=10)
@@ -133,7 +138,7 @@ class TestCompiledTreesClassifier(unittest.TestCase):
         rf1 = ensemble.RandomForestClassifier(n_estimators=500, max_depth=2)
         rf1.fit(X1, y1)
 
-        rf1_compiled = CompiledClassifierPredictor(rf1)
+        rf1_compiled = self.get_compiled_classifier(rf1)
         assert_array_almost_equal(rf1.predict(X1), rf1_compiled.predict(X1), decimal=10)
 
     def test_predictions_with_invalid_input(self):
@@ -148,7 +153,7 @@ class TestCompiledTreesClassifier(unittest.TestCase):
         for cls in CLASSIFIERS:
             clf = cls()
             clf.fit(X, y)
-            compiled = CompiledClassifierPredictor(clf)
+            compiled = self.get_compiled_classifier(clf)
             assert_raises(ValueError, compiled.predict,
                           np.resize(X, (1, num_features, num_features)))
             assert_allclose(compiled.score(X, y), clf.score(X, y))
@@ -166,14 +171,14 @@ class TestCompiledTreesClassifier(unittest.TestCase):
         # fit on X_32
         rf = ensemble.RandomForestClassifier()
         rf.fit(X_32, y)
-        rf = CompiledClassifierPredictor(rf)
+        rf = self.get_compiled_classifier(rf)
 
         assert_array_equal(rf.predict(X_32), rf.predict(X_64))
 
         # fit on X_64
         rf = ensemble.RandomForestClassifier()
         rf.fit(X_64, y)
-        rf = CompiledClassifierPredictor(rf)
+        rf = self.get_compiled_classifier(rf)
 
         assert_array_equal(rf.predict(X_32), rf.predict(X_64))
 
@@ -190,7 +195,7 @@ class TestCompiledTreesClassifier(unittest.TestCase):
 
         rf = ensemble.RandomForestClassifier()
         rf.fit(X_non_contiguous, y)
-        rf_compiled = CompiledClassifierPredictor(rf)
+        rf_compiled = self.get_compiled_classifier(rf)
 
         try:
             rf_compiled.predict(X_non_contiguous)
@@ -200,6 +205,34 @@ class TestCompiledTreesClassifier(unittest.TestCase):
         X_contiguous = np.ascontiguousarray(X_non_contiguous)
         self.assertTrue(X_contiguous.flags['C_CONTIGUOUS'])
         assert_array_equal(rf_compiled.predict(X_non_contiguous), rf_compiled.predict(X_contiguous))
+
+
+class TestCompiledTreesClassifier(unittest.TestCase, BaseTestClassifier):
+    def get_compiled_classifier(self, uncompiled_classifier):
+        return CompiledClassifierPredictor(uncompiled_classifier)
+
+    def get_classifier_label(self):
+        return 'classifier'
+
+
+class TestQuasiFloatClassifier(unittest.TestCase, BaseTestClassifier):
+    def get_compiled_classifier(self, uncompiled_classifier):
+        return CompiledQuasiFloatClassifier(uncompiled_classifier)
+
+    def get_classifier_label(self):
+        return 'classifier_quasi_float'
+
+
+class TestCompilable(unittest.TestCase):
+    def test_rejects_unfitted_classifiers_as_compilable(self):
+        for cls in CLASSIFIERS:
+            assert_equal(CompiledClassifierPredictor.compilable(cls()), False)
+            assert_raises(ValueError, CompiledRegressionPredictor, cls())
+
+    def test_rejects_regressors_as_compilable(self):
+        for cls in REGRESSORS | UNSUPPORTED_CLASSIFIERS:
+            assert_equal(CompiledClassifierPredictor.compilable(cls()), False)
+            assert_raises(ValueError, CompiledRegressionPredictor, cls())
 
 
 class TestCompiledTrees(unittest.TestCase):
