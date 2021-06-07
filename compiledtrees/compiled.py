@@ -6,10 +6,17 @@ from __future__ import print_function
 import six
 
 from sklearn.base import RegressorMixin, ClassifierMixin
-from sklearn.tree.tree import DecisionTreeRegressor, DecisionTreeClassifier, DTYPE, DOUBLE
-from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor, GradientBoostingClassifier
-from sklearn.ensemble.forest import ForestRegressor, ForestClassifier
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier
 from sklearn.utils import deprecated
+
+# since sklearn 0.21 the tree module has been retired
+try:
+    from sklearn.tree.tree import DTYPE, DOUBLE
+    from sklearn.ensemble.forest import ForestRegressor, ForestClassifier
+except ImportError:
+    from sklearn.tree._classes import DTYPE, DOUBLE
+    from sklearn.ensemble._forest import ForestRegressor, ForestClassifier
 
 from compiledtrees import _compiled
 from compiledtrees import code_gen as cg
