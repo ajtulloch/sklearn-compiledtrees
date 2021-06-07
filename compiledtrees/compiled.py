@@ -141,8 +141,6 @@ class CompiledRegressionPredictor(BaseCompiledPredictor, RegressorMixin):
         if isinstance(clf, DecisionTreeRegressor):
             return (hasattr(clf, 'n_outputs_') and
                     clf.n_outputs_ == 1 and
-                    hasattr(clf, 'n_classes_') and
-                    clf.n_classes_ == 1 and
                     clf.tree_ is not None)
 
         if isinstance(clf, (GradientBoostingRegressor, ForestRegressor)):
