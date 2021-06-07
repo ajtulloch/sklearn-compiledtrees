@@ -4,9 +4,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from sklearn import ensemble, tree
 from compiledtrees.compiled import CompiledRegressionPredictor, CompiledClassifierPredictor
-from sklearn.utils.testing import \
-    assert_array_almost_equal, assert_raises, assert_equal, assert_allclose, \
-    assert_array_equal
+from numpy.testing import (
+    assert_array_almost_equal,
+    assert_raises,
+    assert_equal,
+    assert_allclose,
+    assert_array_equal,
+)
 import numpy as np
 import unittest
 import tempfile
