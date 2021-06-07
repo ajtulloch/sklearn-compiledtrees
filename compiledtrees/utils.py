@@ -3,14 +3,14 @@ import platform
 import tempfile
 import numpy as np
 
-QUASI_FLOAT = 1_000_000
+QUASI_FLOAT = 1000000
 
 
-def convert_to_quasi_float(f: float) -> np.int32:
+def convert_to_quasi_float(f):
     return np.int32(f * QUASI_FLOAT)
 
 
-def convert_from_quasi_float(q: np.int32) -> float:
+def convert_from_quasi_float(q):
     return float(q) / QUASI_FLOAT
 
 
