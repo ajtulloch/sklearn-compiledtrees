@@ -20,6 +20,7 @@ except ImportError:
 
 from compiledtrees import _compiled
 from compiledtrees import code_gen as cg
+from compiledtrees.utils import convert_to_quasi_float, convert_from_quasi_float, temp_file_factory
 import numpy as np
 
 import platform
@@ -28,6 +29,56 @@ if platform.system() == 'Windows':
     delete_files = False
 else:
     delete_files = True
+
+
+def is_classifier_compilable(cls, clf):
+    """Verifies that the given fitted model is eligible to be compiled.
+    Returns True if the model is eligible, and False otherwise.
+
+    Parameters
+    ----------
+    clf:
+        A fitted classification tree/ensemble.
+
+    Returns
+    -------
+        bool
+
+    """
+    # TODO - is there an established way to check `is_fitted``?
+    if isinstance(clf, DecisionTreeClassifier):
+        return (hasattr(clf, 'n_outputs_') and
+                clf.n_outputs_ == 1 and
+                clf.tree_ is not None)
+
+    if isinstance(clf, (GradientBoostingClassifier, ForestClassifier)):
+        return (hasattr(clf, 'estimators_') and
+                np.asarray(clf.estimators_).size and
+                all(cls.compilable(e)
+                    for e in np.asarray(clf.estimators_).flat))
+
+    return False
+
+
+def process_feature_matrix(X, num_expected_features):
+    if not X.flags['C_CONTIGUOUS']:
+        X = np.ascontiguousarray(X)
+    if X.dtype != DTYPE:
+        X = X.astype(DTYPE)
+    if X.ndim != 2:
+        raise ValueError(
+            "Input must be 2-dimensional (n_samples, n_features), "
+            "not {}".format(X.shape))
+
+    n_samples, n_features = X.shape
+    if num_expected_features != n_features:
+        raise ValueError("Number of features of the model must "
+                         " match the input. Model n_features is {} and "
+                         " input n_features is {}".format(
+            num_expected_features, n_features))
+
+    return X
+
 
 class BaseCompiledPredictor(object):
     """Common functionality for both regressor and classfier"""
@@ -39,11 +90,8 @@ class BaseCompiledPredictor(object):
         return dict(n_features=self._n_features, so_f=open(self._so_f, 'rb').read())
 
     def __setstate__(self, state):
-        import tempfile
-        self._so_f_object = tempfile.NamedTemporaryFile(mode='w+b',
-                                                        prefix='compiledtrees_',
-                                                        suffix='.so',
-                                                        delete=delete_files)
+        self._so_f_object = temp_file_factory.get_file(suffix='.so')
+
         if isinstance(state["so_f"], six.text_type):
             state["so_f"] = state["so_f"].encode('latin1')
         self._so_f_object.write(state["so_f"])
@@ -253,31 +301,8 @@ class CompiledClassifierPredictor(BaseCompiledPredictor, ClassifierMixin):
 
     @classmethod
     def compilable(cls, clf):
-        """Verifies that the given fitted model is eligible to be compiled.
-        Returns True if the model is eligible, and False otherwise.
-
-        Parameters
-        ----------
-        clf:
-            A fitted classification tree/ensemble.
-
-        Returns
-        -------
-            bool
-
-        """
-        # TODO - is there an established way to check `is_fitted``?
-        if isinstance(clf, DecisionTreeClassifier):
-            return (hasattr(clf, 'n_outputs_') and
-                    clf.n_outputs_ == 1 and
-                    clf.tree_ is not None)
-
-        if isinstance(clf, (GradientBoostingClassifier, ForestClassifier)):
-            return (hasattr(clf, 'estimators_') and
-                    np.asarray(clf.estimators_).size and
-                    all(cls.compilable(e)
-                        for e in np.asarray(clf.estimators_).flat))
-        return False
+        # Reduce code duplication
+        return is_classifier_compilable(cls, clf)
 
     def predict_proba(self, X):
         """Predict probability for invdividual classes for X.
@@ -292,21 +317,8 @@ class CompiledClassifierPredictor(BaseCompiledPredictor, ClassifierMixin):
         y: array of shape = [n_samples, n_classes]
             The predicted probabilities.
         """
-        if not X.flags['C_CONTIGUOUS']:
-            X = np.ascontiguousarray(X)
-        if X.dtype != DTYPE:
-            X = X.astype(DTYPE)
-        if X.ndim != 2:
-            raise ValueError(
-                "Input must be 2-dimensional (n_samples, n_features), "
-                "not {}".format(X.shape))
-
+        X = process_feature_matrix(X, self._n_features)
         n_samples, n_features = X.shape
-        if self._n_features != n_features:
-            raise ValueError("Number of features of the model must "
-                             " match the input. Model n_features is {} and "
-                             " input n_features is {}".format(
-                                 self._n_features, n_features))
 
         all_probas = np.zeros((n_samples, len(self.classes_)), dtype=DOUBLE)
         self._evaluator.predict_proba(X, all_probas)
@@ -334,3 +346,74 @@ class CompiledClassifierPredictor(BaseCompiledPredictor, ClassifierMixin):
         if n_samples == 1:
             proba = proba.reshape(1, -1)
         return self.classes_.take(np.argmax(proba, axis=1), axis=0)
+
+
+class CompiledQuasiFloatClassifier(CompiledClassifierPredictor):
+    def __init__(self, clf, n_jobs=-1):
+        super(CompiledQuasiFloatClassifier, self).__init__(clf, n_jobs)
+
+    def __getstate__(self):
+        state = super(CompiledQuasiFloatClassifier, self).__getstate__()
+        state['classes'] = self.classes_
+        return state
+
+    def __setstate__(self, state):
+        super(CompiledQuasiFloatClassifier, self).__setstate__(state)
+        self.classes_ = state['classes']
+        self._evaluator = _compiled.CompiledClassifierQuasiFloat(
+            self._so_f_object.name.encode("ascii"),
+            cg.EVALUATE_FN_NAME.encode("ascii")
+        )
+
+    @classmethod
+    def compilable(cls, clf):
+        return is_classifier_compilable(cls, clf)
+
+    @classmethod
+    def _build(cls, clf, n_jobs=1):
+        if not cls.compilable(clf):
+            raise ValueError("Predictor {} cannot be compiled".format(
+                clf.__class__.__name__
+            ))
+
+        files = None
+        n_features = None
+        if isinstance(clf, DecisionTreeClassifier):
+            n_features = clf.n_features_
+            files = cg.code_gen_classifier_tree_quasi_float(tree=clf.tree_)
+
+        elif isinstance(clf, ForestClassifier):
+            n_features = clf.n_features_
+            files = cg.code_gen_ensemble_classifier_quasi_float(
+                trees=[e.tree_ for e in clf.estimators_],
+                individual_learner_weight=1.0 / clf.n_estimators
+            )
+
+        assert n_features is not None
+        assert files is not None
+
+        so_f = cg.compile_code_to_object(files, n_jobs=n_jobs)
+        evaluator = _compiled.CompiledClassifierQuasiFloat(
+            so_f.name.encode("ascii"),
+            cg.EVALUATE_FN_NAME.encode("ascii")
+        )
+
+        return n_features, evaluator, so_f
+
+    def predict_proba(self, X_input):
+        X = process_feature_matrix(X_input, self._n_features)
+        n_samples, n_features = X.shape
+
+        convert_to_quasi = np.vectorize(convert_to_quasi_float)
+        convert_from_quasi = np.vectorize(convert_from_quasi_float)
+
+        X_quasi = convert_to_quasi(X)
+        probas_quasi = np.zeros((n_samples, len(self.classes_)), dtype=np.int32)
+
+        self._evaluator.predict_proba(X_quasi, probas_quasi)
+        all_probas = convert_from_quasi(probas_quasi)
+
+        if n_samples == 1:
+            return all_probas[0]
+
+        return all_probas

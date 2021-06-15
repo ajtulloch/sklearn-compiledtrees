@@ -8,8 +8,8 @@ from distutils import sysconfig
 import contextlib
 import os
 import subprocess
-import tempfile
 from joblib import Parallel, delayed
+from compiledtrees.utils import convert_to_quasi_float, temp_file_factory, gcc_opt_level
 
 import platform
 
@@ -26,10 +26,7 @@ ALWAYS_INLINE = "__attribute__((__always_inline__))"
 
 class CodeGenerator(object):
     def __init__(self):
-        self._file = tempfile.NamedTemporaryFile(mode='w+b',
-                                                 prefix='compiledtrees_',
-                                                 suffix='.cpp',
-                                                 delete=delete_files)
+        self._file = temp_file_factory.get_file(suffix='.cpp')
         self._indent = 0
 
     @property
@@ -281,17 +278,86 @@ def code_gen_ensemble_classifier(trees, individual_learner_weight, initial_value
     return tree_files + [gen.file]
 
 
+# Quasi-float classifier code goes below
+
+def code_gen_ensemble_classifier_quasi_float(trees, individual_learner_weight, generator=None):
+    if generator is None:
+        generator = CodeGenerator()
+
+    with generator.bracketed('extern "C" {', "}"):
+        for i, tree in enumerate(trees):
+            function_name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
+            generator.write("void {name}(int* f, int* probas);".format(name=function_name))
+
+        function_declare = "void {name}(int* f, int* probas) {{".format(name=EVALUATE_FN_NAME)
+        with generator.bracketed(function_declare, "}"):
+            for i, _ in enumerate(trees):
+                increment = "{name}_{index}(f, probas);".format(
+                    name=EVALUATE_FN_NAME,
+                    index=i
+                )
+                generator.write(increment)
+
+    tree_files = [
+        gen_classifier_tree_quasi_float(i, tree, individual_learner_weight)
+        for i, tree in enumerate(trees)
+    ]
+    tree_files.append(generator.file)
+
+    return tree_files
+
+
+def gen_classifier_tree_quasi_float(i, tree, weight):
+    name = "{name}_{index}".format(name=EVALUATE_FN_NAME, index=i)
+    gen_tree = CodeGenerator()
+    return code_gen_classifier_tree_quasi_float(tree, name, gen_tree, weight)
+
+
+def code_gen_classifier_tree_quasi_float(tree, evaluate_fn=EVALUATE_FN_NAME,
+                                         generator=None, weight=1.):
+    if generator is None:
+        generator = CodeGenerator()
+
+    def recur(node):
+        if tree.children_left[node] == -1:
+            assert tree.value[node].shape[0] == 1
+            n_leaf_samples = tree.value[node].sum()
+            assert n_leaf_samples > 0
+            for i, val in enumerate(tree.value[node][0]):
+                quasi_val = convert_to_quasi_float(float(val) * weight / n_leaf_samples)
+                generator.write("o[{i}] += {val};".format(i=i, val=quasi_val))
+            return
+
+        branch = "if (f[{feature}] <= {threshold}) {{".format(
+            feature=tree.feature[node],
+            threshold=convert_to_quasi_float(tree.threshold[node])
+        )
+        with generator.bracketed(branch, "}"):
+            recur(tree.children_left[node])
+
+        with generator.bracketed("else {", "}"):
+            recur(tree.children_right[node])
+
+    with generator.bracketed('extern "C" {', "}"):
+        fn_decl = "{inline} void {name}(int* f, int* o) {{".format(
+            inline=ALWAYS_INLINE,
+            name=evaluate_fn
+        )
+        with generator.bracketed(fn_decl, "}"):
+            recur(0)
+
+    return generator.file
+
+
 def _compile(cpp_f):
     if CXX_COMPILER is None:
         raise Exception("CXX compiler was not found. You should set CXX "
                         "environmental variable")
-    o_f = tempfile.NamedTemporaryFile(mode='w+b',
-                                      prefix='compiledtrees_',
-                                      suffix='.o',
-                                      delete=delete_files)
+
+    o_f = temp_file_factory.get_file(suffix='.o')
     if platform.system() == 'Windows':
         o_f.close()
-    _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, "-O3", "-pipe"])
+    _call([CXX_COMPILER, cpp_f, "-c", "-fPIC", "-o", o_f.name, gcc_opt_level, "-pipe"])
     return o_f
 
 
@@ -315,10 +381,7 @@ def compile_code_to_object(files, n_jobs=1):
     o_files = (Parallel(n_jobs=n_jobs, backend='threading')
                (delayed(_compile)(f.name) for f in files))
 
-    so_f = tempfile.NamedTemporaryFile(mode='w+b',
-                                       prefix='compiledtrees_',
-                                       suffix='.so',
-                                       delete=delete_files)
+    so_f = temp_file_factory.get_file(suffix='.so')
     # Close files on Windows to avoid permission errors
     if platform.system() == 'Windows':
         so_f.close()
@@ -326,15 +389,14 @@ def compile_code_to_object(files, n_jobs=1):
     # link trees
     if platform.system() == 'Windows':
         # a hack to overcome large RFs on windows and CMD 9182 chaacters limit
-        list_ofiles = tempfile.NamedTemporaryFile(mode='w+b',
-                                                  prefix='list_ofiles_',
-                                                  delete=delete_files)
+        list_ofiles = temp_file_factory.get_file(prefix='list_ofiles_')
+
         for f in o_files:
             list_ofiles.write((f.name.replace('\\', '\\\\') +
                                "\r").encode('latin1'))
         list_ofiles.close()
         _call([CXX_COMPILER, "-shared", "@%s" % list_ofiles.name, "-fPIC",
-               "-flto", "-o", so_f.name, "-O3", "-pipe"])
+               "-flto", "-o", so_f.name, gcc_opt_level, "-pipe"])
 
         # cleanup files
         for f in o_files:
@@ -345,6 +407,6 @@ def compile_code_to_object(files, n_jobs=1):
     else:
         _call([CXX_COMPILER, "-shared"] +
               [f.name for f in o_files] +
-              ["-fPIC", "-flto", "-o", so_f.name, "-O3", "-pipe"])
+              ["-fPIC", "-flto", "-o", so_f.name, gcc_opt_level, "-pipe"])
 
     return so_f
