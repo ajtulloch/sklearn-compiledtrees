@@ -19,7 +19,7 @@ compiledtrees_ext = Extension(
 
 setup(
     name='sklearn-compiledtrees',
-    version='1.3',
+    version='1.4',
     author='Andrew Tulloch',
     author_email='andrew@tullo.ch',
     maintainer='Andrew Tulloch',
