@@ -1722,14 +1722,23 @@ typedef npy_longdouble __pyx_t_5numpy_longdouble_t;
 /* "compiledtrees/_compiled.pxd":4
  * cimport numpy as np
  * 
+ * ctypedef np.npy_int32 INT_t             # <<<<<<<<<<<<<<
+ * ctypedef np.npy_float32 DTYPE_t
+ * ctypedef np.npy_float64 DOUBLE_t
+ */
+typedef npy_int32 __pyx_t_13compiledtrees_9_compiled_INT_t;
+
+/* "compiledtrees/_compiled.pxd":5
+ * 
+ * ctypedef np.npy_int32 INT_t
  * ctypedef np.npy_float32 DTYPE_t             # <<<<<<<<<<<<<<
  * ctypedef np.npy_float64 DOUBLE_t
  * 
  */
 typedef npy_float32 __pyx_t_13compiledtrees_9_compiled_DTYPE_t;
 
-/* "compiledtrees/_compiled.pxd":5
- * 
+/* "compiledtrees/_compiled.pxd":6
+ * ctypedef np.npy_int32 INT_t
  * ctypedef np.npy_float32 DTYPE_t
  * ctypedef np.npy_float64 DOUBLE_t             # <<<<<<<<<<<<<<
  * 
@@ -1767,6 +1776,7 @@ static CYTHON_INLINE __pyx_t_double_complex __pyx_t_double_complex_from_parts(do
 struct __pyx_obj_13compiledtrees_9_compiled_BaseCompiledPredictor;
 struct __pyx_obj_13compiledtrees_9_compiled_CompiledPredictor;
 struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifier;
+struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat;
 
 /* "../../../../mambaforge/envs/py310_rdkit202309/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd":767
  * ctypedef npy_longdouble longdouble_t
@@ -1804,7 +1814,7 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
 
-/* "compiledtrees/_compiled.pxd":7
+/* "compiledtrees/_compiled.pxd":8
  * ctypedef np.npy_float64 DOUBLE_t
  * 
  * cdef class BaseCompiledPredictor:             # <<<<<<<<<<<<<<
@@ -1838,6 +1848,18 @@ struct __pyx_obj_13compiledtrees_9_compiled_CompiledPredictor {
  *     @cython.boundscheck(False)
  */
 struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifier {
+  struct __pyx_obj_13compiledtrees_9_compiled_BaseCompiledPredictor __pyx_base;
+};
+
+
+/* "compiledtrees/_compiled.pyx":57
+ * 
+ * 
+ * cdef class CompiledClassifierQuasiFloat(BaseCompiledPredictor):             # <<<<<<<<<<<<<<
+ *     @cython.nonecheck(False)
+ *     @cython.boundscheck(False)
+ */
+struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat {
   struct __pyx_obj_13compiledtrees_9_compiled_BaseCompiledPredictor __pyx_base;
 };
 
@@ -2649,6 +2671,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void); /*proto*/
 /* #### Code section: typeinfo ### */
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_DTYPE_t = { "DTYPE_t", NULL, sizeof(__pyx_t_13compiledtrees_9_compiled_DTYPE_t), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_DOUBLE_t = { "DOUBLE_t", NULL, sizeof(__pyx_t_13compiledtrees_9_compiled_DOUBLE_t), { 0 }, 0, 'R', 0, 0 };
+static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_INT_t = { "INT_t", NULL, sizeof(__pyx_t_13compiledtrees_9_compiled_INT_t), { 0 }, 0, __PYX_IS_UNSIGNED(__pyx_t_13compiledtrees_9_compiled_INT_t) ? 'U' : 'I', __PYX_IS_UNSIGNED(__pyx_t_13compiledtrees_9_compiled_INT_t), 0 };
 /* #### Code section: before_global_var ### */
 #define __Pyx_MODULE_NAME "compiledtrees._compiled"
 extern int __pyx_module_is_main_compiledtrees___compiled;
@@ -2666,7 +2689,7 @@ static const char __pyx_k_i[] = "i";
 static const char __pyx_k__5[] = "*";
 static const char __pyx_k_gc[] = "gc";
 static const char __pyx_k_np[] = "np";
-static const char __pyx_k__17[] = "?";
+static const char __pyx_k__20[] = "?";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_self[] = "self";
@@ -2705,9 +2728,13 @@ static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_BaseCompiledPredictor[] = "BaseCompiledPredictor";
 static const char __pyx_k_compiledtrees__compiled[] = "compiledtrees._compiled";
 static const char __pyx_k_CompiledPredictor_predict[] = "CompiledPredictor.predict";
+static const char __pyx_k_CompiledClassifierQuasiFloat[] = "CompiledClassifierQuasiFloat";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_BaseCompiledPredictor___reduce_c[] = "BaseCompiledPredictor.__reduce_cython__";
 static const char __pyx_k_BaseCompiledPredictor___setstate[] = "BaseCompiledPredictor.__setstate_cython__";
+static const char __pyx_k_CompiledClassifierQuasiFloat___r[] = "CompiledClassifierQuasiFloat.__reduce_cython__";
+static const char __pyx_k_CompiledClassifierQuasiFloat___s[] = "CompiledClassifierQuasiFloat.__setstate_cython__";
+static const char __pyx_k_CompiledClassifierQuasiFloat_pre[] = "CompiledClassifierQuasiFloat.predict_proba";
 static const char __pyx_k_CompiledClassifier___reduce_cyth[] = "CompiledClassifier.__reduce_cython__";
 static const char __pyx_k_CompiledClassifier___setstate_cy[] = "CompiledClassifier.__setstate_cython__";
 static const char __pyx_k_CompiledClassifier_predict_proba[] = "CompiledClassifier.predict_proba";
@@ -2728,6 +2755,9 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_17CompiledPredictor_4__sets
 static PyObject *__pyx_pf_13compiledtrees_9_compiled_18CompiledClassifier_predict_proba(struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifier *__pyx_v_self, PyArrayObject *__pyx_v_X, PyArrayObject *__pyx_v_output); /* proto */
 static PyObject *__pyx_pf_13compiledtrees_9_compiled_18CompiledClassifier_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifier *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_13compiledtrees_9_compiled_18CompiledClassifier_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifier *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_predict_proba(struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *__pyx_v_self, PyArrayObject *__pyx_v_X, PyArrayObject *__pyx_v_output); /* proto */
+static PyObject *__pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_tp_new_13compiledtrees_9_compiled_BaseCompiledPredictor(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 /* #### Code section: late_includes ### */
 /* #### Code section: module_state ### */
@@ -2796,14 +2826,20 @@ typedef struct {
   PyObject *__pyx_type_13compiledtrees_9_compiled_BaseCompiledPredictor;
   PyObject *__pyx_type_13compiledtrees_9_compiled_CompiledPredictor;
   PyObject *__pyx_type_13compiledtrees_9_compiled_CompiledClassifier;
+  PyObject *__pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat;
   #endif
   PyTypeObject *__pyx_ptype_13compiledtrees_9_compiled_BaseCompiledPredictor;
   PyTypeObject *__pyx_ptype_13compiledtrees_9_compiled_CompiledPredictor;
   PyTypeObject *__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifier;
+  PyTypeObject *__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat;
   PyObject *__pyx_n_s_BaseCompiledPredictor;
   PyObject *__pyx_n_s_BaseCompiledPredictor___reduce_c;
   PyObject *__pyx_n_s_BaseCompiledPredictor___setstate;
   PyObject *__pyx_n_s_CompiledClassifier;
+  PyObject *__pyx_n_s_CompiledClassifierQuasiFloat;
+  PyObject *__pyx_n_s_CompiledClassifierQuasiFloat___r;
+  PyObject *__pyx_n_s_CompiledClassifierQuasiFloat___s;
+  PyObject *__pyx_n_s_CompiledClassifierQuasiFloat_pre;
   PyObject *__pyx_n_s_CompiledClassifier___reduce_cyth;
   PyObject *__pyx_n_s_CompiledClassifier___setstate_cy;
   PyObject *__pyx_n_s_CompiledClassifier_predict_proba;
@@ -2817,7 +2853,7 @@ typedef struct {
   PyObject *__pyx_n_s_TypeError;
   PyObject *__pyx_n_s_ValueError;
   PyObject *__pyx_n_s_X;
-  PyObject *__pyx_n_s__17;
+  PyObject *__pyx_n_s__20;
   PyObject *__pyx_n_s__5;
   PyObject *__pyx_n_s_asyncio_coroutines;
   PyObject *__pyx_n_s_cline_in_traceback;
@@ -2871,6 +2907,9 @@ typedef struct {
   PyObject *__pyx_codeobj__14;
   PyObject *__pyx_codeobj__15;
   PyObject *__pyx_codeobj__16;
+  PyObject *__pyx_codeobj__17;
+  PyObject *__pyx_codeobj__18;
+  PyObject *__pyx_codeobj__19;
 } __pyx_mstate;
 
 #if CYTHON_USE_MODULE_STATE
@@ -2935,10 +2974,16 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_type_13compiledtrees_9_compiled_CompiledPredictor);
   Py_CLEAR(clear_module_state->__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifier);
   Py_CLEAR(clear_module_state->__pyx_type_13compiledtrees_9_compiled_CompiledClassifier);
+  Py_CLEAR(clear_module_state->__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat);
+  Py_CLEAR(clear_module_state->__pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat);
   Py_CLEAR(clear_module_state->__pyx_n_s_BaseCompiledPredictor);
   Py_CLEAR(clear_module_state->__pyx_n_s_BaseCompiledPredictor___reduce_c);
   Py_CLEAR(clear_module_state->__pyx_n_s_BaseCompiledPredictor___setstate);
   Py_CLEAR(clear_module_state->__pyx_n_s_CompiledClassifier);
+  Py_CLEAR(clear_module_state->__pyx_n_s_CompiledClassifierQuasiFloat);
+  Py_CLEAR(clear_module_state->__pyx_n_s_CompiledClassifierQuasiFloat___r);
+  Py_CLEAR(clear_module_state->__pyx_n_s_CompiledClassifierQuasiFloat___s);
+  Py_CLEAR(clear_module_state->__pyx_n_s_CompiledClassifierQuasiFloat_pre);
   Py_CLEAR(clear_module_state->__pyx_n_s_CompiledClassifier___reduce_cyth);
   Py_CLEAR(clear_module_state->__pyx_n_s_CompiledClassifier___setstate_cy);
   Py_CLEAR(clear_module_state->__pyx_n_s_CompiledClassifier_predict_proba);
@@ -2952,7 +2997,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_TypeError);
   Py_CLEAR(clear_module_state->__pyx_n_s_ValueError);
   Py_CLEAR(clear_module_state->__pyx_n_s_X);
-  Py_CLEAR(clear_module_state->__pyx_n_s__17);
+  Py_CLEAR(clear_module_state->__pyx_n_s__20);
   Py_CLEAR(clear_module_state->__pyx_n_s__5);
   Py_CLEAR(clear_module_state->__pyx_n_s_asyncio_coroutines);
   Py_CLEAR(clear_module_state->__pyx_n_s_cline_in_traceback);
@@ -3006,6 +3051,9 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_codeobj__14);
   Py_CLEAR(clear_module_state->__pyx_codeobj__15);
   Py_CLEAR(clear_module_state->__pyx_codeobj__16);
+  Py_CLEAR(clear_module_state->__pyx_codeobj__17);
+  Py_CLEAR(clear_module_state->__pyx_codeobj__18);
+  Py_CLEAR(clear_module_state->__pyx_codeobj__19);
   return 0;
 }
 #endif
@@ -3048,10 +3096,16 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_type_13compiledtrees_9_compiled_CompiledPredictor);
   Py_VISIT(traverse_module_state->__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifier);
   Py_VISIT(traverse_module_state->__pyx_type_13compiledtrees_9_compiled_CompiledClassifier);
+  Py_VISIT(traverse_module_state->__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat);
+  Py_VISIT(traverse_module_state->__pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat);
   Py_VISIT(traverse_module_state->__pyx_n_s_BaseCompiledPredictor);
   Py_VISIT(traverse_module_state->__pyx_n_s_BaseCompiledPredictor___reduce_c);
   Py_VISIT(traverse_module_state->__pyx_n_s_BaseCompiledPredictor___setstate);
   Py_VISIT(traverse_module_state->__pyx_n_s_CompiledClassifier);
+  Py_VISIT(traverse_module_state->__pyx_n_s_CompiledClassifierQuasiFloat);
+  Py_VISIT(traverse_module_state->__pyx_n_s_CompiledClassifierQuasiFloat___r);
+  Py_VISIT(traverse_module_state->__pyx_n_s_CompiledClassifierQuasiFloat___s);
+  Py_VISIT(traverse_module_state->__pyx_n_s_CompiledClassifierQuasiFloat_pre);
   Py_VISIT(traverse_module_state->__pyx_n_s_CompiledClassifier___reduce_cyth);
   Py_VISIT(traverse_module_state->__pyx_n_s_CompiledClassifier___setstate_cy);
   Py_VISIT(traverse_module_state->__pyx_n_s_CompiledClassifier_predict_proba);
@@ -3065,7 +3119,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_TypeError);
   Py_VISIT(traverse_module_state->__pyx_n_s_ValueError);
   Py_VISIT(traverse_module_state->__pyx_n_s_X);
-  Py_VISIT(traverse_module_state->__pyx_n_s__17);
+  Py_VISIT(traverse_module_state->__pyx_n_s__20);
   Py_VISIT(traverse_module_state->__pyx_n_s__5);
   Py_VISIT(traverse_module_state->__pyx_n_s_asyncio_coroutines);
   Py_VISIT(traverse_module_state->__pyx_n_s_cline_in_traceback);
@@ -3119,6 +3173,9 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_codeobj__14);
   Py_VISIT(traverse_module_state->__pyx_codeobj__15);
   Py_VISIT(traverse_module_state->__pyx_codeobj__16);
+  Py_VISIT(traverse_module_state->__pyx_codeobj__17);
+  Py_VISIT(traverse_module_state->__pyx_codeobj__18);
+  Py_VISIT(traverse_module_state->__pyx_codeobj__19);
   return 0;
 }
 #endif
@@ -3187,14 +3244,20 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_type_13compiledtrees_9_compiled_BaseCompiledPredictor __pyx_mstate_global->__pyx_type_13compiledtrees_9_compiled_BaseCompiledPredictor
 #define __pyx_type_13compiledtrees_9_compiled_CompiledPredictor __pyx_mstate_global->__pyx_type_13compiledtrees_9_compiled_CompiledPredictor
 #define __pyx_type_13compiledtrees_9_compiled_CompiledClassifier __pyx_mstate_global->__pyx_type_13compiledtrees_9_compiled_CompiledClassifier
+#define __pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat __pyx_mstate_global->__pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat
 #endif
 #define __pyx_ptype_13compiledtrees_9_compiled_BaseCompiledPredictor __pyx_mstate_global->__pyx_ptype_13compiledtrees_9_compiled_BaseCompiledPredictor
 #define __pyx_ptype_13compiledtrees_9_compiled_CompiledPredictor __pyx_mstate_global->__pyx_ptype_13compiledtrees_9_compiled_CompiledPredictor
 #define __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifier __pyx_mstate_global->__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifier
+#define __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat __pyx_mstate_global->__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat
 #define __pyx_n_s_BaseCompiledPredictor __pyx_mstate_global->__pyx_n_s_BaseCompiledPredictor
 #define __pyx_n_s_BaseCompiledPredictor___reduce_c __pyx_mstate_global->__pyx_n_s_BaseCompiledPredictor___reduce_c
 #define __pyx_n_s_BaseCompiledPredictor___setstate __pyx_mstate_global->__pyx_n_s_BaseCompiledPredictor___setstate
 #define __pyx_n_s_CompiledClassifier __pyx_mstate_global->__pyx_n_s_CompiledClassifier
+#define __pyx_n_s_CompiledClassifierQuasiFloat __pyx_mstate_global->__pyx_n_s_CompiledClassifierQuasiFloat
+#define __pyx_n_s_CompiledClassifierQuasiFloat___r __pyx_mstate_global->__pyx_n_s_CompiledClassifierQuasiFloat___r
+#define __pyx_n_s_CompiledClassifierQuasiFloat___s __pyx_mstate_global->__pyx_n_s_CompiledClassifierQuasiFloat___s
+#define __pyx_n_s_CompiledClassifierQuasiFloat_pre __pyx_mstate_global->__pyx_n_s_CompiledClassifierQuasiFloat_pre
 #define __pyx_n_s_CompiledClassifier___reduce_cyth __pyx_mstate_global->__pyx_n_s_CompiledClassifier___reduce_cyth
 #define __pyx_n_s_CompiledClassifier___setstate_cy __pyx_mstate_global->__pyx_n_s_CompiledClassifier___setstate_cy
 #define __pyx_n_s_CompiledClassifier_predict_proba __pyx_mstate_global->__pyx_n_s_CompiledClassifier_predict_proba
@@ -3208,7 +3271,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_TypeError __pyx_mstate_global->__pyx_n_s_TypeError
 #define __pyx_n_s_ValueError __pyx_mstate_global->__pyx_n_s_ValueError
 #define __pyx_n_s_X __pyx_mstate_global->__pyx_n_s_X
-#define __pyx_n_s__17 __pyx_mstate_global->__pyx_n_s__17
+#define __pyx_n_s__20 __pyx_mstate_global->__pyx_n_s__20
 #define __pyx_n_s__5 __pyx_mstate_global->__pyx_n_s__5
 #define __pyx_n_s_asyncio_coroutines __pyx_mstate_global->__pyx_n_s_asyncio_coroutines
 #define __pyx_n_s_cline_in_traceback __pyx_mstate_global->__pyx_n_s_cline_in_traceback
@@ -3262,6 +3325,9 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_codeobj__14 __pyx_mstate_global->__pyx_codeobj__14
 #define __pyx_codeobj__15 __pyx_mstate_global->__pyx_codeobj__15
 #define __pyx_codeobj__16 __pyx_mstate_global->__pyx_codeobj__16
+#define __pyx_codeobj__17 __pyx_mstate_global->__pyx_codeobj__17
+#define __pyx_codeobj__18 __pyx_mstate_global->__pyx_codeobj__18
+#define __pyx_codeobj__19 __pyx_mstate_global->__pyx_codeobj__19
 /* #### Code section: module_code ### */
 
 /* "../../../../mambaforge/envs/py310_rdkit202309/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd":245
@@ -5664,6 +5730,7 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_18CompiledClassifier_predic
  *         for i in range(num_samples):
  *             (<void (*)(DTYPE_t*, DOUBLE_t*)> self.func)(&X[i, 0], &output[i, 0])             # <<<<<<<<<<<<<<
  *         return output
+ * 
  */
     __pyx_t_5 = __pyx_v_i;
     __pyx_t_6 = 0;
@@ -5676,6 +5743,8 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_18CompiledClassifier_predic
  *         for i in range(num_samples):
  *             (<void (*)(DTYPE_t*, DOUBLE_t*)> self.func)(&X[i, 0], &output[i, 0])
  *         return output             # <<<<<<<<<<<<<<
+ * 
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF((PyObject *)__pyx_v_output);
@@ -5919,6 +5988,459 @@ static PyObject *__pyx_pf_13compiledtrees_9_compiled_18CompiledClassifier_4__set
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_AddTraceback("compiledtrees._compiled.CompiledClassifier.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "compiledtrees/_compiled.pyx":58
+ * 
+ * cdef class CompiledClassifierQuasiFloat(BaseCompiledPredictor):
+ *     @cython.nonecheck(False)             # <<<<<<<<<<<<<<
+ *     @cython.boundscheck(False)
+ *     @cython.wraparound(False)
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_1predict_proba(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_1predict_proba = {"predict_proba", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_1predict_proba, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_1predict_proba(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  PyArrayObject *__pyx_v_X = 0;
+  PyArrayObject *__pyx_v_output = 0;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[2] = {0,0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("predict_proba (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_MACROS
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  {
+    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_X,&__pyx_n_s_output,0};
+    if (__pyx_kwds) {
+      Py_ssize_t kw_args;
+      switch (__pyx_nargs) {
+        case  2: values[1] = __Pyx_Arg_FASTCALL(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = __Pyx_Arg_FASTCALL(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = __Pyx_NumKwargs_FASTCALL(__pyx_kwds);
+      switch (__pyx_nargs) {
+        case  0:
+        if (likely((values[0] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_X)) != 0)) {
+          (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
+          kw_args--;
+        }
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_output)) != 0)) {
+          (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
+          kw_args--;
+        }
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+        else {
+          __Pyx_RaiseArgtupleInvalid("predict_proba", 1, 2, 2, 1); __PYX_ERR(0, 58, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        const Py_ssize_t kwd_pos_args = __pyx_nargs;
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "predict_proba") < 0)) __PYX_ERR(0, 58, __pyx_L3_error)
+      }
+    } else if (unlikely(__pyx_nargs != 2)) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = __Pyx_Arg_FASTCALL(__pyx_args, 0);
+      values[1] = __Pyx_Arg_FASTCALL(__pyx_args, 1);
+    }
+    __pyx_v_X = ((PyArrayObject *)values[0]);
+    __pyx_v_output = ((PyArrayObject *)values[1]);
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("predict_proba", 1, 2, 2, __pyx_nargs); __PYX_ERR(0, 58, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  {
+    Py_ssize_t __pyx_temp;
+    for (__pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+      __Pyx_Arg_XDECREF_FASTCALL(values[__pyx_temp]);
+    }
+  }
+  __Pyx_AddTraceback("compiledtrees._compiled.CompiledClassifierQuasiFloat.predict_proba", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_X), __pyx_ptype_5numpy_ndarray, 1, "X", 0))) __PYX_ERR(0, 62, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_output), __pyx_ptype_5numpy_ndarray, 1, "output", 0))) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_r = __pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_predict_proba(((struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *)__pyx_v_self), __pyx_v_X, __pyx_v_output);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  {
+    Py_ssize_t __pyx_temp;
+    for (__pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+      __Pyx_Arg_XDECREF_FASTCALL(values[__pyx_temp]);
+    }
+  }
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_predict_proba(struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *__pyx_v_self, PyArrayObject *__pyx_v_X, PyArrayObject *__pyx_v_output) {
+  Py_ssize_t __pyx_v_num_samples;
+  Py_ssize_t __pyx_v_i;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_X;
+  __Pyx_Buffer __pyx_pybuffer_X;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_output;
+  __Pyx_Buffer __pyx_pybuffer_output;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  npy_intp *__pyx_t_1;
+  Py_ssize_t __pyx_t_2;
+  Py_ssize_t __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("predict_proba", 1);
+  __pyx_pybuffer_X.pybuffer.buf = NULL;
+  __pyx_pybuffer_X.refcount = 0;
+  __pyx_pybuffernd_X.data = NULL;
+  __pyx_pybuffernd_X.rcbuffer = &__pyx_pybuffer_X;
+  __pyx_pybuffer_output.pybuffer.buf = NULL;
+  __pyx_pybuffer_output.refcount = 0;
+  __pyx_pybuffernd_output.data = NULL;
+  __pyx_pybuffernd_output.rcbuffer = &__pyx_pybuffer_output;
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_INT_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 58, __pyx_L1_error)
+  }
+  __pyx_pybuffernd_X.diminfo[0].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_X.diminfo[0].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_X.diminfo[1].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_X.diminfo[1].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[1];
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_output.rcbuffer->pybuffer, (PyObject*)__pyx_v_output, &__Pyx_TypeInfo_nn___pyx_t_13compiledtrees_9_compiled_INT_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 58, __pyx_L1_error)
+  }
+  __pyx_pybuffernd_output.diminfo[0].strides = __pyx_pybuffernd_output.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_output.diminfo[0].shape = __pyx_pybuffernd_output.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_output.diminfo[1].strides = __pyx_pybuffernd_output.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_output.diminfo[1].shape = __pyx_pybuffernd_output.rcbuffer->pybuffer.shape[1];
+
+  /* "compiledtrees/_compiled.pyx":64
+ *                       np.ndarray[INT_t, ndim=2, mode='c'] X,
+ *                       np.ndarray[INT_t, ndim=2, mode='c'] output):
+ *         cdef Py_ssize_t num_samples = X.shape[0]             # <<<<<<<<<<<<<<
+ *         for i in range(num_samples):
+ *             (<void (*)(INT_t*, INT_t*)> self.func)(&X[i, 0], &output[i, 0])
+ */
+  __pyx_t_1 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_X)); if (unlikely(__pyx_t_1 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_v_num_samples = (__pyx_t_1[0]);
+
+  /* "compiledtrees/_compiled.pyx":65
+ *                       np.ndarray[INT_t, ndim=2, mode='c'] output):
+ *         cdef Py_ssize_t num_samples = X.shape[0]
+ *         for i in range(num_samples):             # <<<<<<<<<<<<<<
+ *             (<void (*)(INT_t*, INT_t*)> self.func)(&X[i, 0], &output[i, 0])
+ *         return output
+ */
+  __pyx_t_2 = __pyx_v_num_samples;
+  __pyx_t_3 = __pyx_t_2;
+  for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
+    __pyx_v_i = __pyx_t_4;
+
+    /* "compiledtrees/_compiled.pyx":66
+ *         cdef Py_ssize_t num_samples = X.shape[0]
+ *         for i in range(num_samples):
+ *             (<void (*)(INT_t*, INT_t*)> self.func)(&X[i, 0], &output[i, 0])             # <<<<<<<<<<<<<<
+ *         return output
+ */
+    __pyx_t_5 = __pyx_v_i;
+    __pyx_t_6 = 0;
+    __pyx_t_7 = __pyx_v_i;
+    __pyx_t_8 = 0;
+    ((void (*)(__pyx_t_13compiledtrees_9_compiled_INT_t *, __pyx_t_13compiledtrees_9_compiled_INT_t *))__pyx_v_self->__pyx_base.func)((&(*__Pyx_BufPtrCContig2d(__pyx_t_13compiledtrees_9_compiled_INT_t *, __pyx_pybuffernd_X.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_X.diminfo[0].strides, __pyx_t_6, __pyx_pybuffernd_X.diminfo[1].strides))), (&(*__Pyx_BufPtrCContig2d(__pyx_t_13compiledtrees_9_compiled_INT_t *, __pyx_pybuffernd_output.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_output.diminfo[0].strides, __pyx_t_8, __pyx_pybuffernd_output.diminfo[1].strides)))); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 66, __pyx_L1_error)
+  }
+
+  /* "compiledtrees/_compiled.pyx":67
+ *         for i in range(num_samples):
+ *             (<void (*)(INT_t*, INT_t*)> self.func)(&X[i, 0], &output[i, 0])
+ *         return output             # <<<<<<<<<<<<<<
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF((PyObject *)__pyx_v_output);
+  __pyx_r = ((PyObject *)__pyx_v_output);
+  goto __pyx_L0;
+
+  /* "compiledtrees/_compiled.pyx":58
+ * 
+ * cdef class CompiledClassifierQuasiFloat(BaseCompiledPredictor):
+ *     @cython.nonecheck(False)             # <<<<<<<<<<<<<<
+ *     @cython.boundscheck(False)
+ *     @cython.wraparound(False)
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
+    __Pyx_PyThreadState_declare
+    __Pyx_PyThreadState_assign
+    __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_X.rcbuffer->pybuffer);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_output.rcbuffer->pybuffer);
+  __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
+  __Pyx_AddTraceback("compiledtrees._compiled.CompiledClassifierQuasiFloat.predict_proba", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  goto __pyx_L2;
+  __pyx_L0:;
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_X.rcbuffer->pybuffer);
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_output.rcbuffer->pybuffer);
+  __pyx_L2:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_3__reduce_cython__(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_3__reduce_cython__ = {"__reduce_cython__", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_3__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_3__reduce_cython__(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_MACROS
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  if (unlikely(__pyx_nargs > 0)) {
+    __Pyx_RaiseArgtupleInvalid("__reduce_cython__", 1, 0, 0, __pyx_nargs); return NULL;}
+  if (unlikely(__pyx_kwds) && __Pyx_NumKwargs_FASTCALL(__pyx_kwds) && unlikely(!__Pyx_CheckKeywordStrings(__pyx_kwds, "__reduce_cython__", 0))) return NULL;
+  __pyx_r = __pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_2__reduce_cython__(((struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__reduce_cython__", 1);
+
+  /* "(tree fragment)":2
+ * def __reduce_cython__(self):
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ */
+  __Pyx_Raise(__pyx_builtin_TypeError, __pyx_kp_s_no_default___reduce___due_to_non, 0, 0);
+  __PYX_ERR(1, 2, __pyx_L1_error)
+
+  /* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("compiledtrees._compiled.CompiledClassifierQuasiFloat.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":3
+ * def __reduce_cython__(self):
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_5__setstate_cython__(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_5__setstate_cython__ = {"__setstate_cython__", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_5__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_5__setstate_cython__(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  CYTHON_UNUSED PyObject *__pyx_v___pyx_state = 0;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[1] = {0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_MACROS
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  {
+    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_pyx_state,0};
+    if (__pyx_kwds) {
+      Py_ssize_t kw_args;
+      switch (__pyx_nargs) {
+        case  1: values[0] = __Pyx_Arg_FASTCALL(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = __Pyx_NumKwargs_FASTCALL(__pyx_kwds);
+      switch (__pyx_nargs) {
+        case  0:
+        if (likely((values[0] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_pyx_state)) != 0)) {
+          (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
+          kw_args--;
+        }
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 3, __pyx_L3_error)
+        else goto __pyx_L5_argtuple_error;
+      }
+      if (unlikely(kw_args > 0)) {
+        const Py_ssize_t kwd_pos_args = __pyx_nargs;
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__setstate_cython__") < 0)) __PYX_ERR(1, 3, __pyx_L3_error)
+      }
+    } else if (unlikely(__pyx_nargs != 1)) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = __Pyx_Arg_FASTCALL(__pyx_args, 0);
+    }
+    __pyx_v___pyx_state = values[0];
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__setstate_cython__", 1, 1, 1, __pyx_nargs); __PYX_ERR(1, 3, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  {
+    Py_ssize_t __pyx_temp;
+    for (__pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+      __Pyx_Arg_XDECREF_FASTCALL(values[__pyx_temp]);
+    }
+  }
+  __Pyx_AddTraceback("compiledtrees._compiled.CompiledClassifierQuasiFloat.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_4__setstate_cython__(((struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *)__pyx_v_self), __pyx_v___pyx_state);
+
+  /* function exit code */
+  {
+    Py_ssize_t __pyx_temp;
+    for (__pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+      __Pyx_Arg_XDECREF_FASTCALL(values[__pyx_temp]);
+    }
+  }
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__setstate_cython__", 1);
+
+  /* "(tree fragment)":4
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"             # <<<<<<<<<<<<<<
+ */
+  __Pyx_Raise(__pyx_builtin_TypeError, __pyx_kp_s_no_default___reduce___due_to_non, 0, 0);
+  __PYX_ERR(1, 4, __pyx_L1_error)
+
+  /* "(tree fragment)":3
+ * def __reduce_cython__(self):
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("compiledtrees._compiled.CompiledClassifierQuasiFloat.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
@@ -6280,6 +6802,109 @@ static PyTypeObject __pyx_type_13compiledtrees_9_compiled_CompiledClassifier = {
 };
 #endif
 
+static PyMethodDef __pyx_methods_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat[] = {
+  {"predict_proba", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_1predict_proba, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"__reduce_cython__", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_3__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"__setstate_cython__", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_5__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {0, 0, 0, 0}
+};
+#if CYTHON_USE_TYPE_SPECS
+static PyType_Slot __pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat_slots[] = {
+  {Py_tp_methods, (void *)__pyx_methods_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat},
+  {Py_tp_new, (void *)__pyx_tp_new_13compiledtrees_9_compiled_BaseCompiledPredictor},
+  {0, 0},
+};
+static PyType_Spec __pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat_spec = {
+  "compiledtrees._compiled.CompiledClassifierQuasiFloat",
+  sizeof(struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat),
+  0,
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE,
+  __pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat_slots,
+};
+#else
+
+static PyTypeObject __pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat = {
+  PyVarObject_HEAD_INIT(0, 0)
+  "compiledtrees._compiled.""CompiledClassifierQuasiFloat", /*tp_name*/
+  sizeof(struct __pyx_obj_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat), /*tp_basicsize*/
+  0, /*tp_itemsize*/
+  __pyx_tp_dealloc_13compiledtrees_9_compiled_BaseCompiledPredictor, /*tp_dealloc*/
+  #if PY_VERSION_HEX < 0x030800b4
+  0, /*tp_print*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030800b4
+  0, /*tp_vectorcall_offset*/
+  #endif
+  0, /*tp_getattr*/
+  0, /*tp_setattr*/
+  #if PY_MAJOR_VERSION < 3
+  0, /*tp_compare*/
+  #endif
+  #if PY_MAJOR_VERSION >= 3
+  0, /*tp_as_async*/
+  #endif
+  0, /*tp_repr*/
+  0, /*tp_as_number*/
+  0, /*tp_as_sequence*/
+  0, /*tp_as_mapping*/
+  0, /*tp_hash*/
+  0, /*tp_call*/
+  0, /*tp_str*/
+  0, /*tp_getattro*/
+  0, /*tp_setattro*/
+  0, /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE, /*tp_flags*/
+  0, /*tp_doc*/
+  0, /*tp_traverse*/
+  0, /*tp_clear*/
+  0, /*tp_richcompare*/
+  0, /*tp_weaklistoffset*/
+  0, /*tp_iter*/
+  0, /*tp_iternext*/
+  __pyx_methods_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat, /*tp_methods*/
+  0, /*tp_members*/
+  0, /*tp_getset*/
+  0, /*tp_base*/
+  0, /*tp_dict*/
+  0, /*tp_descr_get*/
+  0, /*tp_descr_set*/
+  #if !CYTHON_USE_TYPE_SPECS
+  0, /*tp_dictoffset*/
+  #endif
+  0, /*tp_init*/
+  0, /*tp_alloc*/
+  __pyx_tp_new_13compiledtrees_9_compiled_BaseCompiledPredictor, /*tp_new*/
+  0, /*tp_free*/
+  0, /*tp_is_gc*/
+  0, /*tp_bases*/
+  0, /*tp_mro*/
+  0, /*tp_cache*/
+  0, /*tp_subclasses*/
+  0, /*tp_weaklist*/
+  0, /*tp_del*/
+  0, /*tp_version_tag*/
+  #if PY_VERSION_HEX >= 0x030400a1
+  #if CYTHON_USE_TP_FINALIZE
+  0, /*tp_finalize*/
+  #else
+  NULL, /*tp_finalize*/
+  #endif
+  #endif
+  #if PY_VERSION_HEX >= 0x030800b1 && (!CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM >= 0x07030800)
+  0, /*tp_vectorcall*/
+  #endif
+  #if __PYX_NEED_TP_PRINT_SLOT == 1
+  0, /*tp_print*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030C0000
+  0, /*tp_watched*/
+  #endif
+  #if CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX >= 0x03090000 && PY_VERSION_HEX < 0x030a0000
+  0, /*tp_pypy_flags*/
+  #endif
+};
+#endif
+
 static PyMethodDef __pyx_methods[] = {
   {0, 0, 0, 0}
 };
@@ -6300,6 +6925,10 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_BaseCompiledPredictor___reduce_c, __pyx_k_BaseCompiledPredictor___reduce_c, sizeof(__pyx_k_BaseCompiledPredictor___reduce_c), 0, 0, 1, 1},
     {&__pyx_n_s_BaseCompiledPredictor___setstate, __pyx_k_BaseCompiledPredictor___setstate, sizeof(__pyx_k_BaseCompiledPredictor___setstate), 0, 0, 1, 1},
     {&__pyx_n_s_CompiledClassifier, __pyx_k_CompiledClassifier, sizeof(__pyx_k_CompiledClassifier), 0, 0, 1, 1},
+    {&__pyx_n_s_CompiledClassifierQuasiFloat, __pyx_k_CompiledClassifierQuasiFloat, sizeof(__pyx_k_CompiledClassifierQuasiFloat), 0, 0, 1, 1},
+    {&__pyx_n_s_CompiledClassifierQuasiFloat___r, __pyx_k_CompiledClassifierQuasiFloat___r, sizeof(__pyx_k_CompiledClassifierQuasiFloat___r), 0, 0, 1, 1},
+    {&__pyx_n_s_CompiledClassifierQuasiFloat___s, __pyx_k_CompiledClassifierQuasiFloat___s, sizeof(__pyx_k_CompiledClassifierQuasiFloat___s), 0, 0, 1, 1},
+    {&__pyx_n_s_CompiledClassifierQuasiFloat_pre, __pyx_k_CompiledClassifierQuasiFloat_pre, sizeof(__pyx_k_CompiledClassifierQuasiFloat_pre), 0, 0, 1, 1},
     {&__pyx_n_s_CompiledClassifier___reduce_cyth, __pyx_k_CompiledClassifier___reduce_cyth, sizeof(__pyx_k_CompiledClassifier___reduce_cyth), 0, 0, 1, 1},
     {&__pyx_n_s_CompiledClassifier___setstate_cy, __pyx_k_CompiledClassifier___setstate_cy, sizeof(__pyx_k_CompiledClassifier___setstate_cy), 0, 0, 1, 1},
     {&__pyx_n_s_CompiledClassifier_predict_proba, __pyx_k_CompiledClassifier_predict_proba, sizeof(__pyx_k_CompiledClassifier_predict_proba), 0, 0, 1, 1},
@@ -6313,7 +6942,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
     {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
     {&__pyx_n_s_X, __pyx_k_X, sizeof(__pyx_k_X), 0, 0, 1, 1},
-    {&__pyx_n_s__17, __pyx_k__17, sizeof(__pyx_k__17), 0, 0, 1, 1},
+    {&__pyx_n_s__20, __pyx_k__20, sizeof(__pyx_k__20), 0, 0, 1, 1},
     {&__pyx_n_s__5, __pyx_k__5, sizeof(__pyx_k__5), 0, 0, 1, 1},
     {&__pyx_n_s_asyncio_coroutines, __pyx_k_asyncio_coroutines, sizeof(__pyx_k_asyncio_coroutines), 0, 0, 1, 1},
     {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
@@ -6487,6 +7116,30 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
  */
   __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_setstate_cython, 3, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(1, 3, __pyx_L1_error)
+
+  /* "compiledtrees/_compiled.pyx":58
+ * 
+ * cdef class CompiledClassifierQuasiFloat(BaseCompiledPredictor):
+ *     @cython.nonecheck(False)             # <<<<<<<<<<<<<<
+ *     @cython.boundscheck(False)
+ *     @cython.wraparound(False)
+ */
+  __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_compiled_pyx, __pyx_n_s_predict_proba, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 58, __pyx_L1_error)
+
+  /* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):
+ */
+  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_reduce_cython, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(1, 1, __pyx_L1_error)
+
+  /* "(tree fragment)":3
+ * def __reduce_cython__(self):
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ */
+  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_setstate_cython, 3, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -6626,6 +7279,34 @@ static int __Pyx_modinit_type_init_code(void) {
   if (PyObject_SetAttr(__pyx_m, __pyx_n_s_CompiledClassifier, (PyObject *) __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifier) < 0) __PYX_ERR(0, 44, __pyx_L1_error)
   #if !CYTHON_COMPILING_IN_LIMITED_API
   if (__Pyx_setup_reduce((PyObject *) __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifier) < 0) __PYX_ERR(0, 44, __pyx_L1_error)
+  #endif
+  #if CYTHON_USE_TYPE_SPECS
+  __pyx_t_1 = PyTuple_Pack(1, (PyObject *)__pyx_ptype_13compiledtrees_9_compiled_BaseCompiledPredictor); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat_spec, __pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (unlikely(!__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat)) __PYX_ERR(0, 57, __pyx_L1_error)
+  if (__Pyx_fix_up_extension_type_from_spec(&__pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat_spec, __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  #else
+  __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat = &__pyx_type_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat;
+  #endif
+  #if !CYTHON_COMPILING_IN_LIMITED_API
+  __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat->tp_base = __pyx_ptype_13compiledtrees_9_compiled_BaseCompiledPredictor;
+  #endif
+  #if !CYTHON_USE_TYPE_SPECS
+  if (__Pyx_PyType_Ready(__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  #endif
+  #if PY_MAJOR_VERSION < 3
+  __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat->tp_print = 0;
+  #endif
+  #if !CYTHON_COMPILING_IN_LIMITED_API
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat->tp_dictoffset && __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat->tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat->tp_getattro = __Pyx_PyObject_GenericGetAttr;
+  }
+  #endif
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_CompiledClassifierQuasiFloat, (PyObject *) __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  #if !CYTHON_COMPILING_IN_LIMITED_API
+  if (__Pyx_setup_reduce((PyObject *) __pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
   #endif
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -7081,6 +7762,40 @@ if (!__Pyx_RefNanny) {
  *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13compiledtrees_9_compiled_18CompiledClassifier_5__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_CompiledClassifier___setstate_cy, NULL, __pyx_n_s_compiledtrees__compiled, __pyx_d, ((PyObject *)__pyx_codeobj__16)); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_setstate_cython, __pyx_t_2) < 0) __PYX_ERR(1, 3, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "compiledtrees/_compiled.pyx":58
+ * 
+ * cdef class CompiledClassifierQuasiFloat(BaseCompiledPredictor):
+ *     @cython.nonecheck(False)             # <<<<<<<<<<<<<<
+ *     @cython.boundscheck(False)
+ *     @cython.wraparound(False)
+ */
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_1predict_proba, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_CompiledClassifierQuasiFloat_pre, NULL, __pyx_n_s_compiledtrees__compiled, __pyx_d, ((PyObject *)__pyx_codeobj__17)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat, __pyx_n_s_predict_proba, __pyx_t_2) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  PyType_Modified(__pyx_ptype_13compiledtrees_9_compiled_CompiledClassifierQuasiFloat);
+
+  /* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):
+ */
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_3__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_CompiledClassifierQuasiFloat___r, NULL, __pyx_n_s_compiledtrees__compiled, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_reduce_cython, __pyx_t_2) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "(tree fragment)":3
+ * def __reduce_cython__(self):
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
+ */
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13compiledtrees_9_compiled_28CompiledClassifierQuasiFloat_5__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_CompiledClassifierQuasiFloat___s, NULL, __pyx_n_s_compiledtrees__compiled, __pyx_d, ((PyObject *)__pyx_codeobj__19)); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_setstate_cython, __pyx_t_2) < 0) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -11662,7 +12377,7 @@ __Pyx_PyType_GetName(PyTypeObject* tp)
     if (unlikely(name == NULL) || unlikely(!PyUnicode_Check(name))) {
         PyErr_Clear();
         Py_XDECREF(name);
-        name = __Pyx_NewRef(__pyx_n_s__17);
+        name = __Pyx_NewRef(__pyx_n_s__20);
     }
     return name;
 }
