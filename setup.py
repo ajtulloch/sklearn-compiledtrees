@@ -1,31 +1,33 @@
-from numpy.distutils.core import setup
-from numpy.distutils.misc_util import Configuration
+from distutils.core import setup, Extension
 import os
 
+import numpy as np
 
-def configuration(parent_package='', top_path=None):
-    if os.path.exists('MANIFEST'):
-        os.remove('MANIFEST')
+# Configure extension
+libraries = []
+if os.name == 'posix':
+    libraries.append('m')
 
-    config = Configuration(None, parent_package, top_path)
-    config.set_options(ignore_setup_xxx_py=True,
-                       assume_default_configuration=True,
-                       delegate_options_to_subpackages=True,
-                       quiet=True)
-    config.add_subpackage('compiledtrees')
-    return config
+compiledtrees_ext = Extension(
+    'compiledtrees._compiled',
+    ['compiledtrees/_compiled.c'],
+    include_dirs=[np.get_include()],
+    libraries=libraries,
+    extra_link_args=["-Wl,--allow-multiple-definition"],
+    extra_compile_args=["-O3", "-Wno-unused-function"]
+)
 
 setup(
     name='sklearn-compiledtrees',
-    version='1.3',
+    version='1.4',
     author='Andrew Tulloch',
     author_email='andrew@tullo.ch',
     maintainer='Andrew Tulloch',
     maintainer_email='andrew@tullo.ch',
     url='https://github.com/ajtulloch/sklearn-compiledtrees',
-    configuration=configuration,
     description='Compiled scikit-learn decision trees for faster evaluation',
     packages=['compiledtrees'],
+    ext_modules=[compiledtrees_ext],
     install_requires=['joblib', 'scikit-learn', 'six', 'numpy'],
     license='MIT License',
     platforms='Any',

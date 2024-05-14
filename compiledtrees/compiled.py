@@ -133,12 +133,17 @@ class CompiledRegressionPredictor(BaseCompiledPredictor, RegressorMixin):
         files = None
         n_features = None
         if isinstance(clf, DecisionTreeRegressor):
-            n_features = clf.n_features_
+            if hasattr(clf, "n_features_"):
+                n_features = clf.n_features_
+            else:
+                n_features = clf.n_features_in_
             files = cg.code_gen_regressor_tree(tree=clf.tree_)
 
         if isinstance(clf, GradientBoostingRegressor):
-            n_features = clf.n_features_
-
+            if hasattr(clf, "n_features_"):
+                n_features = clf.n_features_
+            else:
+                n_features = clf.n_features_in_
             # hack to get the initial (prior) on the decision tree.
             if hasattr(clf, '_raw_predict_init'):
                 initial_value = clf._raw_predict_init(
@@ -154,8 +159,10 @@ class CompiledRegressionPredictor(BaseCompiledPredictor, RegressorMixin):
                 initial_value=initial_value, n_jobs=n_jobs)
 
         if isinstance(clf, ForestRegressor):
-            n_features = clf.n_features_
-
+            if hasattr(clf, "n_features_"):
+                n_features = clf.n_features_
+            else:
+                n_features = clf.n_features_in_
             files = cg.code_gen_ensemble_regressor(
                 trees=[e.tree_ for e in clf.estimators_],
                 individual_learner_weight=1.0 / clf.n_estimators,
@@ -279,11 +286,17 @@ class CompiledClassifierPredictor(BaseCompiledPredictor, ClassifierMixin):
         files = None
         n_features = None
         if isinstance(clf, DecisionTreeClassifier):
-            n_features = clf.n_features_
+            if hasattr(clf, "n_features_"):
+                n_features = clf.n_features_
+            else:
+                n_features = clf.n_features_in_
             files = cg.code_gen_classifier_tree(tree=clf.tree_)
 
         elif isinstance(clf, ForestClassifier):
-            n_features = clf.n_features_
+            if hasattr(clf, "n_features_"):
+                n_features = clf.n_features_
+            else:
+                n_features = clf.n_features_in_
 
             files = cg.code_gen_ensemble_classifier(
                 trees=[e.tree_ for e in clf.estimators_],
@@ -379,11 +392,17 @@ class CompiledQuasiFloatClassifier(CompiledClassifierPredictor):
         files = None
         n_features = None
         if isinstance(clf, DecisionTreeClassifier):
-            n_features = clf.n_features_
+            if hasattr(clf, "n_features_"):
+                n_features = clf.n_features_
+            else:
+                n_features = clf.n_features_in_
             files = cg.code_gen_classifier_tree_quasi_float(tree=clf.tree_)
 
         elif isinstance(clf, ForestClassifier):
-            n_features = clf.n_features_
+            if hasattr(clf, "n_features_"):
+                n_features = clf.n_features_
+            else:
+                n_features = clf.n_features_in_
             files = cg.code_gen_ensemble_classifier_quasi_float(
                 trees=[e.tree_ for e in clf.estimators_],
                 individual_learner_weight=1.0 / clf.n_estimators
