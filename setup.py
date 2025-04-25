@@ -1,7 +1,12 @@
 from distutils.core import setup, Extension
 import os
 
-import numpy as np
+# Avoid requiring numpy during dependency resolution
+try:
+    import numpy as np
+    include_dirs = [np.get_include()]
+except ImportError:
+    include_dirs = []
 
 # Configure extension
 libraries = []
@@ -11,7 +16,7 @@ if os.name == 'posix':
 compiledtrees_ext = Extension(
     'compiledtrees._compiled',
     ['compiledtrees/_compiled.c'],
-    include_dirs=[np.get_include()],
+    include_dirs=include_dirs,
     libraries=libraries,
     extra_link_args=["-Wl,--allow-multiple-definition"],
     extra_compile_args=["-O3", "-Wno-unused-function"]
